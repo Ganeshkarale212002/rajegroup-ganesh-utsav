@@ -55,6 +55,7 @@ function formatDate(value) {
       : new Date(value);
 
     return d.toLocaleDateString("mr-IN");
+
   } catch (e) {
     return "-";
   }
@@ -62,7 +63,7 @@ function formatDate(value) {
 
 
 /* =========================
-   AMOUNT IN WORDS
+   AMOUNT WORDS
 ========================= */
 
 function numberToMarathiWords(num) {
@@ -109,7 +110,7 @@ function numberToMarathiWords(num) {
     "नव्वद"
   ];
 
-  function twoDigit(n) {
+  function two(n) {
 
     if (n < 20) {
       return ones[n];
@@ -122,7 +123,7 @@ function numberToMarathiWords(num) {
   function convert(n) {
 
     if (n < 100) {
-      return twoDigit(n);
+      return two(n);
     }
 
     if (n < 1000) {
@@ -132,13 +133,13 @@ function numberToMarathiWords(num) {
     }
 
     if (n < 100000) {
-      return twoDigit(Math.floor(n / 1000)) +
+      return two(Math.floor(n / 1000)) +
         " हजार " +
         (n % 1000 ? convert(n % 1000) : "");
     }
 
     if (n < 10000000) {
-      return twoDigit(Math.floor(n / 100000)) +
+      return two(Math.floor(n / 100000)) +
         " लाख " +
         (n % 100000 ? convert(n % 100000) : "");
     }
@@ -195,6 +196,7 @@ async function loadData() {
         .doc("mandal")
         .get();
 
+
     if (p.exists) {
 
       profileData = {
@@ -243,9 +245,7 @@ function shell(content, active) {
 
           <div>
 
-            <h1>
-              राजे ग्रुप
-            </h1>
+            <h1>राजे ग्रुप</h1>
 
             <small>
               ${escapeHtml(
@@ -274,7 +274,6 @@ function shell(content, active) {
 
         </button>
 
-
         <button
           class="${active === "receipts" ? "active" : ""}"
           onclick="showReceipts()">
@@ -283,7 +282,6 @@ function shell(content, active) {
           <span>पावती</span>
 
         </button>
-
 
         <button
           class="${active === "members" ? "active" : ""}"
@@ -294,7 +292,6 @@ function shell(content, active) {
 
         </button>
 
-
         <button
           class="${active === "expenses" ? "active" : ""}"
           onclick="showExpenses()">
@@ -303,7 +300,6 @@ function shell(content, active) {
           <span>खर्च</span>
 
         </button>
-
 
         <button
           class="${active === "reports" ? "active" : ""}"
@@ -329,17 +325,18 @@ function showHome() {
 
   const collection =
     receiptsData.reduce(
-      (sum, item) =>
-        sum + Number(item.amount || 0),
+      (a, x) =>
+        a + Number(x.amount || 0),
       0
     );
 
   const expense =
     expensesData.reduce(
-      (sum, item) =>
-        sum + Number(item.amount || 0),
+      (a, x) =>
+        a + Number(x.amount || 0),
       0
     );
+
 
   shell(`
 
@@ -352,7 +349,6 @@ function showHome() {
       <div class="title">
         राजे ग्रुप
       </div>
-
 
       <div class="balance">
 
@@ -376,13 +372,28 @@ function showHome() {
       <div class="grid">
 
         <div class="card">
-          <small>एकूण वर्गणी</small>
-          <b>${money(collection)}</b>
+
+          <small>
+            एकूण वर्गणी
+          </small>
+
+          <b>
+            ${money(collection)}
+          </b>
+
         </div>
 
+
         <div class="card">
-          <small>एकूण खर्च</small>
-          <b>${money(expense)}</b>
+
+          <small>
+            एकूण खर्च
+          </small>
+
+          <b>
+            ${money(expense)}
+          </b>
+
         </div>
 
       </div>
@@ -401,18 +412,18 @@ function showHome() {
             ? receiptsData
                 .slice(-5)
                 .reverse()
-                .map(item => `
+                .map(x => `
 
                   <div class="row">
 
                     <span>
-                      पावती ${item.receiptNumber || "-"}
+                      पावती ${x.receiptNumber || "-"}
                       •
-                      ${escapeHtml(item.name)}
+                      ${escapeHtml(x.name)}
                     </span>
 
                     <span class="amount">
-                      ${money(item.amount)}
+                      ${money(x.amount)}
                     </span>
 
                   </div>
@@ -487,11 +498,9 @@ function renderReceipts(list) {
   if (!list.length) {
 
     box.innerHTML = `
-
       <div class="card">
         अजून पावत्या नाहीत
       </div>
-
     `;
 
     return;
@@ -502,7 +511,7 @@ function renderReceipts(list) {
     list
       .slice()
       .reverse()
-      .map(item => `
+      .map(x => `
 
         <div class="card">
 
@@ -511,26 +520,26 @@ function renderReceipts(list) {
             <div>
 
               <b>
-                पावती ${item.receiptNumber || "-"}
+                पावती ${x.receiptNumber || "-"}
               </b>
 
               <div class="muted">
-                ${escapeHtml(item.name)}
+                ${escapeHtml(x.name)}
               </div>
 
               <div class="muted">
-                ${escapeHtml(item.paymentMode)}
+                ${escapeHtml(x.paymentMode)}
               </div>
 
               <div class="muted">
-                ${formatDate(item.date)}
+                ${formatDate(x.date)}
               </div>
 
             </div>
 
 
             <span class="amount">
-              ${money(item.amount)}
+              ${money(x.amount)}
             </span>
 
           </div>
@@ -538,7 +547,7 @@ function renderReceipts(list) {
 
           <button
             class="action"
-            onclick="printReceipt('${item.id}')">
+            onclick="printReceipt('${x.id}')">
 
             📄 PDF / Print
 
@@ -547,7 +556,7 @@ function renderReceipts(list) {
 
           <button
             class="action"
-            onclick="shareReceiptPDF('${item.id}')">
+            onclick="shareReceiptPDF('${x.id}')">
 
             📲 WhatsApp वर PDF पाठवा
 
@@ -570,32 +579,29 @@ function filterReceipts() {
   if (!input) return;
 
 
-  const value =
+  const q =
     input.value
       .toLowerCase()
       .trim();
 
 
-  const filtered =
-    receiptsData.filter(item => {
-
-      const name =
-        String(item.name || "")
-          .toLowerCase();
-
-      const number =
-        String(item.receiptNumber || "")
-          .toLowerCase();
+  const result =
+    receiptsData.filter(x => {
 
       return (
-        name.includes(value) ||
-        number.includes(value)
+        String(x.name || "")
+          .toLowerCase()
+          .includes(q) ||
+
+        String(x.receiptNumber || "")
+          .toLowerCase()
+          .includes(q)
       );
 
     });
 
 
-  renderReceipts(filtered);
+  renderReceipts(result);
 }
 
 
@@ -613,9 +619,7 @@ function showNewReceiptForm() {
 
         <div class="brand">
 
-          <div class="logo">
-            ॐ
-          </div>
+          <div class="logo">ॐ</div>
 
           <div>
 
@@ -650,7 +654,6 @@ function showNewReceiptForm() {
           <input
             id="donorName"
             class="search"
-            type="text"
             placeholder="नाव लिहा"
           >
 
@@ -666,7 +669,6 @@ function showNewReceiptForm() {
             id="donorAmount"
             class="search"
             type="number"
-            inputmode="numeric"
             placeholder="उदा. 1032"
           >
 
@@ -703,7 +705,6 @@ function showNewReceiptForm() {
           <input
             id="receivedBy"
             class="search"
-            type="text"
             value="${escapeHtml(
               profileData.president
             )}"
@@ -714,13 +715,12 @@ function showNewReceiptForm() {
 
 
           <label>
-            वर्गणी कशासाठी
+            वर्गणी दाखल / कारण
           </label>
 
           <input
             id="purpose"
             class="search"
-            type="text"
             value="गणेश उत्सव वर्गणी"
           >
 
@@ -845,40 +845,37 @@ async function saveReceipt() {
 
   try {
 
-    const snapshot =
+    const snap =
       await db
         .collection("vargani")
         .get();
 
 
-    let nextNumber = 1;
+    let next = 1;
 
 
-    snapshot.forEach(doc => {
+    snap.forEach(doc => {
 
-      const number =
+      const n =
         Number(
           doc.data().receiptNumber || 0
         );
 
 
-      if (number >= nextNumber) {
-
-        nextNumber =
-          number + 1;
-
+      if (n >= next) {
+        next = n + 1;
       }
 
     });
 
 
-    let receiptDate =
+    let timestamp =
       firebase.firestore.Timestamp.now();
 
 
     if (dateValue) {
 
-      receiptDate =
+      timestamp =
         firebase.firestore.Timestamp.fromDate(
           new Date(
             dateValue + "T12:00:00"
@@ -892,15 +889,18 @@ async function saveReceipt() {
       .collection("vargani")
       .add({
 
-        name,
+        name: name,
 
-        amount,
+        amount: amount,
 
-        paymentMode,
+        paymentMode:
+          paymentMode,
 
-        receivedBy,
+        receivedBy:
+          receivedBy,
 
-        purpose,
+        purpose:
+          purpose,
 
         amountInWords:
           numberToMarathiWords(
@@ -908,17 +908,17 @@ async function saveReceipt() {
           ),
 
         receiptNumber:
-          nextNumber,
+          next,
 
         date:
-          receiptDate
+          timestamp
 
       });
 
 
     alert(
       "पावती क्रमांक " +
-      nextNumber +
+      next +
       " तयार झाली."
     );
 
@@ -929,11 +929,7 @@ async function saveReceipt() {
 
   } catch (error) {
 
-    console.error(
-      "Receipt Error:",
-      error
-    );
-
+    console.error(error);
 
     alert(
       "पावती सेव्ह झाली नाही."
@@ -944,7 +940,7 @@ async function saveReceipt() {
 
 
 /* =========================
-   PROFILE
+   MEMBERS
 ========================= */
 
 function showMembers() {
@@ -962,23 +958,23 @@ function showMembers() {
         membersData.length
 
           ? membersData
-              .map(item => `
+              .map(x => `
 
                 <div class="card">
 
                   <b>
-                    ${escapeHtml(item.name)}
+                    ${escapeHtml(x.name)}
                   </b>
 
                   <div class="amount">
                     ${escapeHtml(
-                      item.role ||
+                      x.role ||
                       "कार्यकर्ता"
                     )}
                   </div>
 
                   <div class="muted">
-                    ${escapeHtml(item.mobile)}
+                    ${escapeHtml(x.mobile)}
                   </div>
 
                 </div>
@@ -987,11 +983,9 @@ function showMembers() {
               .join("")
 
           : `
-
             <div class="card">
               अजून कार्यकर्ते नाहीत
             </div>
-
           `
       }
 
@@ -1009,6 +1003,10 @@ function showMembers() {
   `, "members");
 }
 
+
+/* =========================
+   PROFILE
+========================= */
 
 function showProfile() {
 
@@ -1083,7 +1081,7 @@ function showProfile() {
 
 
           <label>
-            अध्यक्षाचे नाव
+            अध्यक्ष
           </label>
 
           <input
@@ -1099,7 +1097,7 @@ function showProfile() {
 
 
           <label>
-            उपाध्यक्षाचे नाव
+            उपाध्यक्ष
           </label>
 
           <input
@@ -1115,7 +1113,7 @@ function showProfile() {
 
 
           <label>
-            खजिनदाराचे नाव
+            खजिनदार
           </label>
 
           <input
@@ -1131,7 +1129,7 @@ function showProfile() {
 
 
           <label>
-            🖼️ Logo Upload
+            Logo Upload
           </label>
 
           <input
@@ -1145,7 +1143,7 @@ function showProfile() {
 
 
           <label>
-            ✍️ अध्यक्ष Signature
+            अध्यक्ष Signature
           </label>
 
           <input
@@ -1159,7 +1157,7 @@ function showProfile() {
 
 
           <label>
-            ✍️ उपाध्यक्ष Signature
+            उपाध्यक्ष Signature
           </label>
 
           <input
@@ -1173,7 +1171,7 @@ function showProfile() {
 
 
           <label>
-            ✍️ खजिनदार Signature
+            खजिनदार Signature
           </label>
 
           <input
@@ -1250,29 +1248,24 @@ function readImage(file) {
 
           const max = 700;
 
+          let w = img.width;
 
-          let width =
-            img.width;
-
-          let height =
-            img.height;
+          let h = img.height;
 
 
-          if (width > max) {
+          if (w > max) {
 
-            height =
-              height * max / width;
+            h =
+              h * max / w;
 
-            width = max;
+            w = max;
 
           }
 
 
-          canvas.width =
-            width;
+          canvas.width = w;
 
-          canvas.height =
-            height;
+          canvas.height = h;
 
 
           const ctx =
@@ -1283,15 +1276,15 @@ function readImage(file) {
             img,
             0,
             0,
-            width,
-            height
+            w,
+            h
           );
 
 
           resolve(
             canvas.toDataURL(
               "image/jpeg",
-              0.75
+              0.8
             )
           );
 
@@ -1338,14 +1331,12 @@ async function saveProfile() {
     const presidentSign =
       await readImage(
         document
-          .getElementById(
-            "presidentSignFile"
-          )
+          .getElementById("presidentSignFile")
           .files[0]
       );
 
 
-    const vicePresidentSign =
+    const viceSign =
       await readImage(
         document
           .getElementById(
@@ -1410,36 +1401,23 @@ async function saveProfile() {
     };
 
 
-    if (logo) {
-
-      data.logo =
-        logo;
-
-    }
+    if (logo)
+      data.logo = logo;
 
 
-    if (presidentSign) {
-
+    if (presidentSign)
       data.presidentSign =
         presidentSign;
 
-    }
 
-
-    if (vicePresidentSign) {
-
+    if (viceSign)
       data.vicePresidentSign =
-        vicePresidentSign;
-
-    }
+        viceSign;
 
 
-    if (treasurerSign) {
-
+    if (treasurerSign)
       data.treasurerSign =
         treasurerSign;
-
-    }
 
 
     await db
@@ -1452,11 +1430,8 @@ async function saveProfile() {
 
 
     profileData = {
-
       ...profileData,
-
       ...data
-
     };
 
 
@@ -1469,11 +1444,7 @@ async function saveProfile() {
 
   } catch (error) {
 
-    console.error(
-      "Profile Error:",
-      error
-    );
-
+    console.error(error);
 
     alert(
       "प्रोफाइल सेव्ह करताना समस्या आली."
@@ -1483,626 +1454,574 @@ async function saveProfile() {
 }
 
 
-/* =========================
-   RECEIPT HTML
-========================= */
+/* ==================================================
+   EXACT RECEIPT DESIGN
+================================================== */
 
-function receiptHTML(receipt) {
+function buildReceiptDOM(receipt) {
+
+  const wrapper =
+    document.createElement("div");
+
+
+  wrapper.id =
+    "pdfReceipt";
+
+
+  wrapper.style.cssText = `
+    position:absolute;
+    left:-10000px;
+    top:0;
+    width:650px;
+    height:920px;
+    background:#fffaf0;
+    overflow:hidden;
+  `;
+
 
   const logo =
     profileData.logo
 
       ? `
         <img
-          class="main-logo"
+          class="r-logo"
           src="${profileData.logo}"
         >
       `
 
       : `
-        <div class="om">
+        <div class="r-om">
           ॐ
         </div>
       `;
 
 
-  const presidentSign =
-    profileData.presidentSign
-      ? `<img src="${profileData.presidentSign}">`
-      : "";
-
-
-  const viceSign =
+  const vpSign =
     profileData.vicePresidentSign
       ? `<img src="${profileData.vicePresidentSign}">`
       : "";
 
 
-  const treasurerSign =
+  const pSign =
+    profileData.presidentSign
+      ? `<img src="${profileData.presidentSign}">`
+      : "";
+
+
+  const tSign =
     profileData.treasurerSign
       ? `<img src="${profileData.treasurerSign}">`
       : "";
 
 
-  const amountWords =
+  const words =
     receipt.amountInWords ||
     numberToMarathiWords(
       receipt.amount
     );
 
 
-  return `
-
-<!DOCTYPE html>
-
-<html lang="mr">
-
-<head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width,initial-scale=1">
-
-<title>
-पावती-${receipt.receiptNumber}
-</title>
-
+  wrapper.innerHTML = `
 
 <style>
 
-* {
-  box-sizing: border-box;
-}
-
-body {
-
-  margin: 0;
-
-  padding: 12px;
-
-  background: #eeeeee;
+#pdfReceipt {
 
   font-family:
     Arial,
     "Noto Sans Devanagari",
     sans-serif;
 
-  color: #44201b;
+  color:#4a211d;
 
 }
 
 
-.receipt {
+.r-page {
 
-  width: 100%;
+  width:650px;
 
-  max-width: 760px;
+  height:920px;
 
-  min-height: 1050px;
+  position:relative;
 
-  margin: auto;
+  background:#fffaf0;
 
-  background: #fffaf0;
+  border:4px solid #6c2020;
 
-  border: 4px solid #6b201d;
-
-  position: relative;
-
-  overflow: hidden;
-
-  padding: 15px 22px 20px;
+  box-sizing:border-box;
 
 }
 
 
-.receipt:after {
+.r-inner {
 
-  content: "";
+  position:absolute;
 
-  position: absolute;
+  left:6px;
 
-  inset: 6px;
+  right:6px;
 
-  border: 2px solid #a47a35;
+  top:6px;
 
-  pointer-events: none;
+  bottom:6px;
 
-}
-
-
-/* TOP ORANGE */
-
-.top-banner {
-
-  height: 95px;
-
-  margin: -15px -22px 0;
-
-  background:
-    linear-gradient(
-      180deg,
-      #f4770a,
-      #e95d05
-    );
-
-  color: white;
-
-  text-align: center;
-
-  padding-top: 18px;
-
-  position: relative;
-
-  z-index: 2;
+  border:2px solid #a47b3d;
 
 }
 
 
-.banner-text {
+.r-orange {
 
-  font-size: 22px;
+  position:absolute;
 
-  font-weight: bold;
+  left:0;
+
+  top:0;
+
+  width:100%;
+
+  height:78px;
+
+  background:#f26a08;
 
 }
 
 
-.scallop {
+.r-orange-text {
 
-  position: absolute;
+  color:white;
 
-  bottom: -12px;
+  text-align:center;
 
-  left: 0;
+  font-size:20px;
 
-  right: 0;
+  font-weight:bold;
 
-  height: 25px;
+  padding-top:17px;
+
+}
+
+
+.r-scallop {
+
+  position:absolute;
+
+  left:0;
+
+  bottom:-11px;
+
+  width:100%;
+
+  height:22px;
 
   background:
     radial-gradient(
-      circle at 12px -2px,
-      #fffaf0 14px,
-      transparent 15px
-    )
-    repeat-x;
+      circle at 11px 0,
+      #fffaf0 11px,
+      transparent 12px
+    );
 
-  background-size: 24px 24px;
-
-}
-
-
-/* HEADER */
-
-.header {
-
-  text-align: center;
-
-  position: relative;
-
-  z-index: 3;
-
-  padding-top: 22px;
+  background-size:22px 22px;
 
 }
 
 
-.main-logo {
+.r-head {
 
-  width: 95px;
+  position:absolute;
 
-  height: 95px;
+  top:83px;
 
-  object-fit: contain;
+  left:20px;
 
-  display: block;
+  right:20px;
 
-  margin: auto;
-
-}
-
-
-.om {
-
-  font-size: 75px;
-
-  line-height: 90px;
+  text-align:center;
 
 }
 
 
-.mandal {
+.r-logo {
 
-  font-size: 26px;
+  width:72px;
 
-  font-weight: 800;
+  height:72px;
 
-  margin-top: 8px;
-
-}
-
-
-.place {
-
-  font-size: 14px;
-
-  font-weight: 600;
-
-  margin-top: 7px;
+  object-fit:contain;
 
 }
 
 
-.gold-line {
+.r-om {
 
-  width: 75%;
+  font-size:60px;
 
-  height: 2px;
-
-  margin: 8px auto;
-
-  background: #b08a42;
+  height:72px;
 
 }
 
 
-/* RECEIPT NUMBER */
+.r-title {
 
-.top-info {
+  font-size:25px;
 
-  display: flex;
+  font-weight:bold;
 
-  justify-content: space-between;
-
-  align-items: center;
-
-  margin-top: 20px;
-
-  padding: 8px 4px;
-
-  border-top: 1px solid #c2a46d;
-
-  border-bottom: 1px solid #c2a46d;
-
-  position: relative;
-
-  z-index: 3;
+  margin-top:3px;
 
 }
 
 
-.receipt-no {
+.r-place {
 
-  border: 1px solid #8c6540;
+  font-size:13px;
 
-  padding: 8px 15px;
+  font-weight:bold;
 
-  font-weight: bold;
-
-}
-
-
-.date {
-
-  font-weight: bold;
+  margin-top:6px;
 
 }
 
 
-/* CONTENT */
+.r-gold {
 
-.content {
+  width:220px;
 
-  position: relative;
+  height:2px;
 
-  z-index: 3;
+  background:#b89958;
 
-  margin-top: 25px;
-
-}
-
-
-.field {
-
-  border-bottom: 2px dotted #c5a66a;
-
-  padding: 8px 4px;
-
-  min-height: 45px;
-
-  font-size: 18px;
+  margin:7px auto;
 
 }
 
 
-.label {
+.r-top {
 
-  color: #8b7664;
+  position:absolute;
 
-  font-size: 13px;
+  top:278px;
 
-  display: block;
+  left:28px;
 
-}
+  right:28px;
 
+  height:55px;
 
-.value {
+  border-top:1px solid #b9995a;
 
-  font-weight: 700;
-
-  font-size: 19px;
-
-}
-
-
-.two {
-
-  display: grid;
-
-  grid-template-columns:
-    1.6fr
-    0.8fr;
-
-  gap: 20px;
+  border-bottom:1px solid #b9995a;
 
 }
 
 
-/* WATERMARK */
+.r-no {
 
-.watermark {
+  position:absolute;
 
-  position: absolute;
+  left:0;
 
-  left: 50%;
+  top:10px;
 
-  top: 58%;
+  border:1px solid #8e6841;
+
+  padding:7px 13px;
+
+  font-size:15px;
+
+  font-weight:bold;
+
+}
+
+
+.r-date {
+
+  position:absolute;
+
+  right:0;
+
+  top:17px;
+
+  font-size:15px;
+
+  font-weight:bold;
+
+}
+
+
+.r-content {
+
+  position:absolute;
+
+  top:345px;
+
+  left:30px;
+
+  right:30px;
+
+}
+
+
+.r-field {
+
+  border-bottom:
+    2px dotted #c9aa6d;
+
+  min-height:48px;
+
+  padding-top:5px;
+
+}
+
+
+.r-label {
+
+  display:block;
+
+  color:#887766;
+
+  font-size:12px;
+
+}
+
+
+.r-value {
+
+  font-size:17px;
+
+  font-weight:bold;
+
+  margin-top:4px;
+
+}
+
+
+.r-two {
+
+  display:grid;
+
+  grid-template-columns:1.55fr .75fr;
+
+  gap:18px;
+
+}
+
+
+.r-watermark {
+
+  position:absolute;
+
+  left:50%;
+
+  top:485px;
 
   transform:
     translate(-50%,-50%)
     rotate(-20deg);
 
-  font-size: 190px;
+  font-size:180px;
 
-  color: rgba(170,120,60,0.09);
+  font-weight:bold;
 
-  font-weight: bold;
-
-  z-index: 1;
+  color:rgba(180,130,70,.08);
 
 }
 
 
-/* BOTTOM AREA */
+.r-bottom {
 
-.bottom-area {
+  position:absolute;
 
-  position: relative;
+  left:30px;
 
-  z-index: 3;
+  right:30px;
 
-  display: flex;
+  top:625px;
 
-  justify-content: space-between;
+  display:flex;
 
-  align-items: center;
+  justify-content:space-between;
 
-  margin-top: 45px;
-
-}
-
-
-.amount-box {
-
-  width: 190px;
-
-  background:
-    linear-gradient(
-      180deg,
-      #f76b08,
-      #d84d08
-    );
-
-  color: white;
-
-  border: 3px solid #e3ad50;
-
-  border-radius: 12px;
-
-  text-align: center;
-
-  padding: 10px;
-
-  box-shadow:
-    0 0 0 2px #9e5c20 inset;
+  align-items:center;
 
 }
 
 
-.amount-title {
+.r-money {
 
-  font-size: 13px;
+  width:165px;
 
-}
+  height:68px;
 
+  background:#f26108;
 
-.amount-number {
+  border:3px solid #e1a64d;
 
-  font-size: 28px;
+  border-radius:12px;
 
-  font-weight: 800;
+  color:white;
 
-  margin-top: 5px;
+  text-align:center;
 
-}
+  box-sizing:border-box;
 
-
-.qr {
-
-  width: 105px;
-
-  height: 105px;
-
-  border: 5px solid white;
-
-  box-shadow:
-    0 0 0 1px #777;
+  padding-top:8px;
 
 }
 
 
-/* SIGNATURES */
+.r-money-label {
 
-.signatures {
-
-  position: relative;
-
-  z-index: 3;
-
-  display: grid;
-
-  grid-template-columns:
-    1fr
-    1.15fr
-    1fr;
-
-  align-items: end;
-
-  gap: 18px;
-
-  margin-top: 75px;
-
-  text-align: center;
+  font-size:12px;
 
 }
 
 
-.sign-box {
+.r-money-value {
 
-  min-height: 105px;
+  font-size:24px;
 
-}
+  font-weight:bold;
 
-
-.sign-box img {
-
-  width: 105px;
-
-  height: 55px;
-
-  object-fit: contain;
-
-  display: block;
-
-  margin: auto;
+  margin-top:4px;
 
 }
 
 
-.sign-line {
+.r-qr {
 
-  border-top: 1px solid #333;
+  width:82px;
 
-  padding-top: 7px;
+  height:82px;
 
-  font-weight: 700;
+  background:white;
 
-  font-size: 15px;
+  display:flex;
 
-}
+  align-items:center;
 
-
-.role {
-
-  font-weight: 600;
-
-  font-size: 14px;
+  justify-content:center;
 
 }
 
 
-/* FOOTER */
+.r-signs {
 
-.footer {
+  position:absolute;
 
-  position: absolute;
+  left:28px;
 
-  left: 0;
+  right:28px;
 
-  right: 0;
+  bottom:55px;
 
-  bottom: 0;
+  display:grid;
 
-  height: 55px;
+  grid-template-columns:1fr 1.15fr 1fr;
 
-  background: #f4e7c8;
+  gap:15px;
 
-  border-top: 1px solid #c39b55;
+  text-align:center;
 
-  text-align: center;
-
-  padding-top: 8px;
-
-  z-index: 3;
-
-  font-weight: bold;
+  align-items:end;
 
 }
 
 
-@media print {
+.r-sign {
 
-  body {
+  height:72px;
 
-    background: white;
+}
 
-    padding: 0;
 
-  }
+.r-sign img {
 
-  .receipt {
+  width:105px;
 
-    max-width: none;
+  height:48px;
 
-    margin: 0;
+  object-fit:contain;
 
-    min-height: 285mm;
+}
 
-  }
+
+.r-line {
+
+  border-top:1px solid #333;
+
+  padding-top:5px;
+
+  font-size:13px;
+
+  font-weight:bold;
+
+}
+
+
+.r-role {
+
+  font-size:12px;
+
+  margin-top:3px;
+
+}
+
+
+.r-footer {
+
+  position:absolute;
+
+  bottom:0;
+
+  left:0;
+
+  right:0;
+
+  height:38px;
+
+  background:#f4e5c4;
+
+  border-top:1px solid #c39b55;
+
+  text-align:center;
+
+  padding-top:8px;
+
+  box-sizing:border-box;
+
+  font-size:12px;
+
+  font-weight:bold;
 
 }
 
 </style>
 
-</head>
+
+<div class="r-page">
+
+  <div class="r-inner"></div>
 
 
-<body>
+  <div class="r-orange">
 
-
-<div class="receipt">
-
-
-  <div class="top-banner">
-
-    <div class="banner-text">
-
+    <div class="r-orange-text">
       ☆ &nbsp; ॥ श्री गणेश प्रसन्न ॥ &nbsp; ☆
-
     </div>
 
-    <div class="scallop"></div>
+    <div class="r-scallop"></div>
 
   </div>
 
 
-  <div class="header">
+  <div class="r-head">
 
     ${logo}
 
 
-    <div class="mandal">
+    <div class="r-title">
 
       ${escapeHtml(
         profileData.mandalName
@@ -2111,10 +2030,10 @@ body {
     </div>
 
 
-    <div class="gold-line"></div>
+    <div class="r-gold"></div>
 
 
-    <div class="place">
+    <div class="r-place">
 
       ${escapeHtml(
         profileData.place
@@ -2125,9 +2044,9 @@ body {
   </div>
 
 
-  <div class="top-info">
+  <div class="r-top">
 
-    <div class="receipt-no">
+    <div class="r-no">
 
       पावती क्र.
       ${receipt.receiptNumber || "-"}
@@ -2135,7 +2054,7 @@ body {
     </div>
 
 
-    <div class="date">
+    <div class="r-date">
 
       दिनांक :
       ${formatDate(receipt.date)}
@@ -2145,143 +2064,101 @@ body {
   </div>
 
 
-  <div class="watermark">
+  <div class="r-watermark">
     ॐ
   </div>
 
 
-  <div class="content">
+  <div class="r-content">
 
 
-    <div class="field">
+    <div class="r-field">
 
-      <span class="label">
+      <span class="r-label">
         श्री. / श्रीमती
       </span>
 
-      <span class="value">
+      <div class="r-value">
         ${escapeHtml(receipt.name)}
-      </span>
+      </div>
 
     </div>
 
 
-    <div class="field">
+    <div class="r-field">
 
-      <span class="label">
+      <span class="r-label">
         याद्वारे रक्कम रुपये (अक्षरी)
       </span>
 
-      <span class="value">
-        ${escapeHtml(amountWords)}
-      </span>
+      <div class="r-value">
+        ${escapeHtml(words)}
+      </div>
 
     </div>
 
 
-    <div class="field">
+    <div class="r-field">
 
-      <span class="label">
+      <span class="r-label">
         English
       </span>
 
-      <span class="value">
-        Rupees ${Number(
-          receipt.amount || 0
-        ).toLocaleString("en-IN")} Only
-      </span>
+      <div class="r-value">
+        One Thousand Rupees Only
+      </div>
 
     </div>
 
 
-    <div class="two">
+    <div class="r-two">
 
-      <div class="field">
 
-        <span class="label">
+      <div class="r-field">
+
+        <span class="r-label">
           वर्गणी दाखल / कारण
         </span>
 
-        <span class="value">
+        <div class="r-value">
           ${escapeHtml(
             receipt.purpose ||
             "गणेश उत्सव वर्गणी"
           )}
-        </span>
+        </div>
 
       </div>
 
 
-      <div class="field">
+      <div class="r-field">
 
-        <span class="label">
+        <span class="r-label">
           माध्यम
         </span>
 
-        <span class="value">
+        <div class="r-value">
           ${escapeHtml(
             receipt.paymentMode
           )}
-        </span>
+        </div>
 
       </div>
+
 
     </div>
 
 
-    <div class="field">
+    <div class="r-field">
 
-      <span class="label">
+      <span class="r-label">
         स्वीकारले
       </span>
 
-      <span class="value">
+      <div class="r-value">
         ${escapeHtml(
           receipt.receivedBy
         )}
-      </span>
-
-    </div>
-
-
-    <div class="bottom-area">
-
-
-      <div class="amount-box">
-
-        <div class="amount-title">
-          रक्कम
-        </div>
-
-        <div class="amount-number">
-          ₹ ${Number(
-            receipt.amount || 0
-          ).toLocaleString("en-IN")}/-
-        </div>
-
       </div>
-
-
-      <div>
-
-        <div
-          id="qrCode"
-          class="qr">
-        </div>
-
-        <div
-          style="
-            text-align:center;
-            font-size:11px;
-            margin-top:4px;
-          ">
-
-          पावती
-
-        </div>
-
-      </div>
-
 
     </div>
 
@@ -2289,21 +2166,64 @@ body {
   </div>
 
 
-  <div class="signatures">
+  <div class="r-bottom">
 
 
-    <div class="sign-box">
+    <div class="r-money">
 
-      ${viceSign}
+      <div class="r-money-label">
+        रक्कम
+      </div>
+
+      <div class="r-money-value">
+
+        ₹ ${Number(
+          receipt.amount || 0
+        ).toLocaleString("en-IN")}/-
+
+      </div>
+
+    </div>
 
 
-      <div class="sign-line">
+    <div>
+
+      <div
+        id="receiptQR"
+        class="r-qr">
+      </div>
+
+      <div
+        style="
+          text-align:center;
+          font-size:9px;
+          margin-top:3px;
+        ">
+
+        पावती
+
+      </div>
+
+    </div>
+
+
+  </div>
+
+
+  <div class="r-signs">
+
+
+    <div class="r-sign">
+
+      ${vpSign}
+
+      <div class="r-line">
 
         ${escapeHtml(
           profileData.vicePresident
         )}
 
-        <div class="role">
+        <div class="r-role">
           उपाध्यक्ष
         </div>
 
@@ -2312,18 +2232,17 @@ body {
     </div>
 
 
-    <div class="sign-box">
+    <div class="r-sign">
 
-      ${presidentSign}
+      ${pSign}
 
-
-      <div class="sign-line">
+      <div class="r-line">
 
         ${escapeHtml(
           profileData.president
         )}
 
-        <div class="role">
+        <div class="r-role">
           अध्यक्ष
         </div>
 
@@ -2332,18 +2251,17 @@ body {
     </div>
 
 
-    <div class="sign-box">
+    <div class="r-sign">
 
-      ${treasurerSign}
+      ${tSign}
 
-
-      <div class="sign-line">
+      <div class="r-line">
 
         ${escapeHtml(
           profileData.treasurer
         )}
 
-        <div class="role">
+        <div class="r-role">
           खजिनदार
         </div>
 
@@ -2355,103 +2273,132 @@ body {
   </div>
 
 
-  <div class="footer">
+  <div class="r-footer">
 
-    सहकार्याबद्दल मनःपूर्वक धन्यवाद 🙏
+    सहकार्याबद्दल मनःपूर्वक धन्यवाद
 
   </div>
 
 
 </div>
+`;
 
 
-<script
-src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js">
-</script>
-
-
-<script>
-
-new QRCode(
-  document.getElementById("qrCode"),
-  {
-    text:
-      "${location.origin}/?receipt=${receipt.receiptNumber || ""}",
-    width: 95,
-    height: 95
-  }
-);
-
-</script>
-
-
-</body>
-
-</html>
-
-  `;
-}
-
-
-/* =========================
-   PRINT
-========================= */
-
-function printReceipt(id) {
-
-  const receipt =
-    receiptsData.find(
-      item => item.id === id
-    );
-
-
-  if (!receipt) {
-
-    alert(
-      "पावती सापडली नाही."
-    );
-
-    return;
-  }
-
-
-  const win =
-    window.open(
-      "",
-      "_blank"
-    );
-
-
-  if (!win) {
-
-    alert(
-      "Popup बंद आहे. Browser popup allow करा."
-    );
-
-    return;
-  }
-
-
-  win.document.open();
-
-  win.document.write(
-    receiptHTML(receipt)
+  document.body.appendChild(
+    wrapper
   );
 
-  win.document.close();
 
-
-  setTimeout(() => {
-
-    win.print();
-
-  }, 1000);
-
+  return wrapper;
 }
 
 
 /* =========================
-   PDF LIBRARY
+   LOAD QR CODE
+========================= */
+
+function loadQRCode() {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      if (
+        typeof QRCode !==
+        "undefined"
+      ) {
+
+        resolve();
+
+        return;
+      }
+
+
+      const s =
+        document.createElement(
+          "script"
+        );
+
+
+      s.src =
+        "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+
+
+      s.onload =
+        () => resolve();
+
+
+      s.onerror =
+        () =>
+          reject(
+            new Error(
+              "QR library failed"
+            )
+          );
+
+
+      document.head.appendChild(
+        s
+      );
+
+    }
+  );
+}
+
+
+/* =========================
+   LOAD HTML2CANVAS
+========================= */
+
+function loadHtml2Canvas() {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      if (
+        typeof html2canvas !==
+        "undefined"
+      ) {
+
+        resolve();
+
+        return;
+      }
+
+
+      const s =
+        document.createElement(
+          "script"
+        );
+
+
+      s.src =
+        "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+
+
+      s.onload =
+        () => resolve();
+
+
+      s.onerror =
+        () =>
+          reject(
+            new Error(
+              "html2canvas failed"
+            )
+          );
+
+
+      document.head.appendChild(
+        s
+      );
+
+    }
+  );
+}
+
+
+/* =========================
+   LOAD JSPDF
 ========================= */
 
 function loadJsPDF() {
@@ -2470,31 +2417,31 @@ function loadJsPDF() {
       }
 
 
-      const script =
+      const s =
         document.createElement(
           "script"
         );
 
 
-      script.src =
+      s.src =
         "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
 
 
-      script.onload =
+      s.onload =
         () => resolve();
 
 
-      script.onerror =
+      s.onerror =
         () =>
           reject(
             new Error(
-              "PDF library failed"
+              "jsPDF failed"
             )
           );
 
 
       document.head.appendChild(
-        script
+        s
       );
 
     }
@@ -2503,14 +2450,14 @@ function loadJsPDF() {
 
 
 /* =========================
-   PDF
+   CREATE REAL PDF
 ========================= */
 
-async function makeReceiptPDF(id) {
+async function createReceiptPDF(id) {
 
   const receipt =
     receiptsData.find(
-      item => item.id === id
+      x => x.id === id
     );
 
 
@@ -2523,428 +2470,31 @@ async function makeReceiptPDF(id) {
   }
 
 
+  await loadQRCode();
+
+  await loadHtml2Canvas();
+
   await loadJsPDF();
 
 
-  const { jsPDF } =
-    window.jspdf;
-
-
-  const doc =
-    new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4"
-    });
-
-
-  const W = 210;
-
-  const H = 297;
-
-  const margin = 8;
-
-
-  /* outer border */
-
-  doc.setLineWidth(1);
-
-  doc.rect(
-    margin,
-    margin,
-    W - margin * 2,
-    H - margin * 2
-  );
-
-
-  doc.setLineWidth(0.4);
-
-  doc.rect(
-    margin + 3,
-    margin + 3,
-    W - margin * 2 - 6,
-    H - margin * 2 - 6
-  );
-
-
-  /* orange header */
-
-  doc.setFillColor(
-    238,
-    96,
-    8
-  );
-
-  doc.rect(
-    11,
-    11,
-    188,
-    25,
-    "F"
-  );
-
-
-  doc.setTextColor(
-    255,
-    255,
-    255
-  );
-
-  doc.setFontSize(14);
-
-  doc.text(
-    "☆  || Shri Ganesh Prasanna ||  ☆",
-    105,
-    26,
-    {
-      align: "center"
-    }
-  );
-
-
-  doc.setTextColor(
-    65,
-    30,
-    25
-  );
-
-
-  let y = 48;
-
-
-  /* logo */
-
-  if (profileData.logo) {
-
-    try {
-
-      doc.addImage(
-        profileData.logo,
-        "JPEG",
-        82,
-        y,
-        46,
-        35
-      );
-
-      y += 41;
-
-    } catch (e) {
-
-      y += 5;
-
-    }
-
-  } else {
-
-    doc.setFontSize(28);
-
-    doc.text(
-      "OM",
-      105,
-      y + 12,
-      {
-        align: "center"
-      }
+  const element =
+    buildReceiptDOM(
+      receipt
     );
-
-    y += 20;
-
-  }
-
-
-  doc.setFontSize(17);
-
-  doc.setFont("helvetica", "bold");
-
-  doc.text(
-    profileData.mandalName,
-    105,
-    y,
-    {
-      align: "center"
-    }
-  );
-
-
-  y += 8;
-
-
-  doc.setFontSize(10);
-
-  doc.text(
-    profileData.place,
-    105,
-    y,
-    {
-      align: "center"
-    }
-  );
-
-
-  y += 9;
-
-
-  doc.line(
-    30,
-    y,
-    180,
-    y
-  );
-
-
-  y += 10;
-
-
-  /* receipt no */
-
-  doc.setFontSize(10);
-
-  doc.setFont("helvetica", "normal");
-
-
-  doc.text(
-    "Pavati Kr.: " +
-    String(
-      receipt.receiptNumber || "-"
-    ),
-    18,
-    y
-  );
-
-
-  doc.text(
-    "Dinank: " +
-    formatDate(receipt.date),
-    192,
-    y,
-    {
-      align: "right"
-    }
-  );
-
-
-  y += 10;
-
-
-  doc.line(
-    18,
-    y,
-    192,
-    y
-  );
-
-
-  y += 13;
-
-
-  doc.setFontSize(11);
-
-
-  doc.text(
-    "Varganidarache nav:",
-    20,
-    y
-  );
-
-
-  doc.setFont("helvetica", "bold");
-
-
-  doc.text(
-    String(receipt.name || ""),
-    62,
-    y
-  );
-
-
-  y += 12;
-
-
-  doc.setFont("helvetica", "normal");
-
-
-  doc.text(
-    "Rakkam akshari:",
-    20,
-    y
-  );
-
-
-  doc.text(
-    String(
-      receipt.amountInWords ||
-      numberToMarathiWords(
-        receipt.amount
-      )
-    ),
-    60,
-    y
-  );
-
-
-  y += 12;
-
-
-  doc.text(
-    "Rakkam:",
-    20,
-    y
-  );
-
-
-  doc.setFont("helvetica", "bold");
-
-
-  doc.text(
-    money(receipt.amount),
-    50,
-    y
-  );
-
-
-  y += 12;
-
-
-  doc.setFont("helvetica", "normal");
-
-
-  doc.text(
-    "Vargani / Karan:",
-    20,
-    y
-  );
-
-
-  doc.text(
-    String(
-      receipt.purpose ||
-      "Ganesh Utsav Vargani"
-    ),
-    62,
-    y
-  );
-
-
-  y += 12;
-
-
-  doc.text(
-    "Madhyam:",
-    20,
-    y
-  );
-
-
-  doc.text(
-    String(
-      receipt.paymentMode || ""
-    ),
-    55,
-    y
-  );
-
-
-  y += 12;
-
-
-  doc.text(
-    "Sweekarle:",
-    20,
-    y
-  );
-
-
-  doc.text(
-    String(
-      receipt.receivedBy || ""
-    ),
-    55,
-    y
-  );
-
-
-  y += 35;
-
-
-  /* amount box */
-
-  doc.setFillColor(
-    228,
-    82,
-    5
-  );
-
-  doc.roundedRect(
-    20,
-    y,
-    55,
-    25,
-    4,
-    4,
-    "F"
-  );
-
-
-  doc.setTextColor(
-    255,
-    255,
-    255
-  );
-
-
-  doc.setFontSize(9);
-
-  doc.text(
-    "Rakkam",
-    47,
-    y + 8,
-    {
-      align: "center"
-    }
-  );
-
-
-  doc.setFontSize(17);
-
-  doc.setFont("helvetica", "bold");
-
-  doc.text(
-    "Rs. " +
-    Number(
-      receipt.amount || 0
-    ).toLocaleString("en-IN") +
-    "/-",
-    47,
-    y + 18,
-    {
-      align: "center"
-    }
-  );
-
-
-  doc.setTextColor(
-    65,
-    30,
-    25
-  );
 
 
   /* QR */
 
-  const qrCanvas =
-    document.createElement(
-      "canvas"
+  const qr =
+    document.getElementById(
+      "receiptQR"
     );
 
 
-  if (
-    typeof QRCode !==
-    "undefined"
-  ) {
+  if (qr) {
 
     new QRCode(
-      qrCanvas,
+      qr,
       {
         text:
           location.origin +
@@ -2952,205 +2502,110 @@ async function makeReceiptPDF(id) {
           String(
             receipt.receiptNumber || ""
           ),
-        width: 180,
-        height: 180
+
+        width:72,
+
+        height:72
       }
     );
 
   }
 
 
-  /* signatures */
+  /* wait for logo/signatures/QR */
 
-  y += 55;
-
-
-  const leftX = 48;
-
-  const centerX = 105;
-
-  const rightX = 162;
-
-
-  if (
-    profileData.vicePresidentSign
-  ) {
-
-    try {
-
-      doc.addImage(
-        profileData.vicePresidentSign,
-        "JPEG",
-        leftX - 18,
-        y - 14,
-        36,
-        18
-      );
-
-    } catch (e) {}
-
-  }
-
-
-  if (
-    profileData.presidentSign
-  ) {
-
-    try {
-
-      doc.addImage(
-        profileData.presidentSign,
-        "JPEG",
-        centerX - 20,
-        y - 15,
-        40,
-        20
-      );
-
-    } catch (e) {}
-
-  }
-
-
-  if (
-    profileData.treasurerSign
-  ) {
-
-    try {
-
-      doc.addImage(
-        profileData.treasurerSign,
-        "JPEG",
-        rightX - 18,
-        y - 14,
-        36,
-        18
-      );
-
-    } catch (e) {}
-
-  }
-
-
-  doc.setLineWidth(0.4);
-
-
-  doc.line(
-    leftX - 23,
-    y + 5,
-    leftX + 23,
-    y + 5
+  await new Promise(
+    resolve =>
+      setTimeout(
+        resolve,
+        900
+      )
   );
 
 
-  doc.line(
-    centerX - 27,
-    y + 5,
-    centerX + 27,
-    y + 5
+  const canvas =
+    await html2canvas(
+      element,
+      {
+        scale: 2,
+
+        useCORS: true,
+
+        backgroundColor:
+          "#fffaf0",
+
+        width: 650,
+
+        height: 920
+      }
+    );
+
+
+  const image =
+    canvas.toDataURL(
+      "image/jpeg",
+      0.95
+    );
+
+
+  const {
+    jsPDF
+  } = window.jspdf;
+
+
+  const pdf =
+    new jsPDF({
+
+      orientation:
+        "portrait",
+
+      unit:
+        "mm",
+
+      format:
+        "a4"
+
+    });
+
+
+  /*
+     IMPORTANT:
+     650 x 920 is same A4 proportion.
+     त्यामुळे receipt stretch होणार नाही.
+  */
+
+  pdf.addImage(
+    image,
+    "JPEG",
+    0,
+    0,
+    210,
+    297
   );
 
 
-  doc.line(
-    rightX - 23,
-    y + 5,
-    rightX + 23,
-    y + 5
-  );
+  const blob =
+    pdf.output("blob");
 
 
-  doc.setFontSize(9);
+  element.remove();
 
 
-  doc.text(
-    profileData.vicePresident || "",
-    leftX,
-    y + 11,
-    {
-      align: "center"
-    }
-  );
-
-
-  doc.text(
-    "Upadhyaksha",
-    leftX,
-    y + 17,
-    {
-      align: "center"
-    }
-  );
-
-
-  doc.text(
-    profileData.president || "",
-    centerX,
-    y + 11,
-    {
-      align: "center"
-    }
-  );
-
-
-  doc.text(
-    "Adhyaksha",
-    centerX,
-    y + 17,
-    {
-      align: "center"
-    }
-  );
-
-
-  doc.text(
-    profileData.treasurer || "",
-    rightX,
-    y + 11,
-    {
-      align: "center"
-    }
-  );
-
-
-  doc.text(
-    "Khajindar",
-    rightX,
-    y + 17,
-    {
-      align: "center"
-    }
-  );
-
-
-  doc.setFontSize(9);
-
-  doc.text(
-    "Sahakaryabaddal manahpurvak dhanyawad",
-    105,
-    278,
-    {
-      align: "center"
-    }
-  );
-
-
-  return doc.output(
-    "blob"
-  );
+  return blob;
 }
 
 
 /* =========================
-   WHATSAPP PDF SHARE
+   PRINT
 ========================= */
 
-async function shareReceiptPDF(id) {
+async function printReceipt(id) {
 
   try {
 
     const receipt =
       receiptsData.find(
-        item => item.id === id
+        x => x.id === id
       );
 
 
@@ -3165,17 +2620,175 @@ async function shareReceiptPDF(id) {
     }
 
 
-    alert(
-      "PDF तयार होत आहे..."
+    const element =
+      buildReceiptDOM(
+        receipt
+      );
+
+
+    await loadQRCode();
+
+
+    const qr =
+      document.getElementById(
+        "receiptQR"
+      );
+
+
+    if (qr) {
+
+      new QRCode(
+        qr,
+        {
+          text:
+            location.origin +
+            "/?receipt=" +
+            String(
+              receipt.receiptNumber || ""
+            ),
+
+          width:72,
+
+          height:72
+        }
+      );
+
+    }
+
+
+    await new Promise(
+      r =>
+        setTimeout(
+          r,
+          700
+        )
     );
 
 
+    const win =
+      window.open(
+        "",
+        "_blank"
+      );
+
+
+    if (!win) {
+
+      element.remove();
+
+      alert(
+        "Popup allow करा."
+      );
+
+      return;
+
+    }
+
+
+    win.document.write(`
+
+      <html>
+
+      <head>
+
+        <title>
+          पावती ${receipt.receiptNumber}
+        </title>
+
+        <style>
+
+          body {
+            margin:0;
+            padding:0;
+            background:white;
+          }
+
+          @page {
+            size:A4;
+            margin:0;
+          }
+
+        </style>
+
+      </head>
+
+      <body>
+
+        ${element.innerHTML}
+
+      </body>
+
+      </html>
+
+    `);
+
+
+    win.document.close();
+
+
+    element.remove();
+
+
+    setTimeout(
+      () => {
+
+        win.print();
+
+      },
+      900
+    );
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "PDF/Print तयार करता आले नाही."
+    );
+
+  }
+}
+
+
+/* =========================
+   WHATSAPP ACTUAL PDF
+========================= */
+
+async function shareReceiptPDF(id) {
+
+  try {
+
+    alert(
+      "तुझी पावती PDF तयार होत आहे..."
+    );
+
+
+    const receipt =
+      receiptsData.find(
+        x => x.id === id
+      );
+
+
+    if (!receipt) {
+
+      alert(
+        "पावती सापडली नाही."
+      );
+
+      return;
+
+    }
+
+
     const blob =
-      await makeReceiptPDF(id);
+      await createReceiptPDF(
+        id
+      );
 
 
     const fileName =
-      "Rajegroup-Pavati-" +
+      "राजे-ग्रुप-पावती-" +
       String(
         receipt.receiptNumber || "1"
       ) +
@@ -3193,6 +2806,12 @@ async function shareReceiptPDF(id) {
       );
 
 
+    /*
+       Android Chrome मध्ये
+       हे WhatsApp ला actual PDF
+       attachment म्हणून देईल.
+    */
+
     if (
       navigator.share &&
       navigator.canShare &&
@@ -3206,9 +2825,6 @@ async function shareReceiptPDF(id) {
         title:
           "राजे ग्रुप पावती",
 
-        text:
-          "गणेश मित्र मंडळ राजे ग्रुप वारणानगर",
-
         files: [file]
 
       });
@@ -3217,6 +2833,10 @@ async function shareReceiptPDF(id) {
 
     }
 
+
+    /*
+       जर browser file-share support करत नसेल
+    */
 
     const url =
       URL.createObjectURL(
@@ -3239,221 +2859,3 @@ async function shareReceiptPDF(id) {
     document.body.appendChild(
       a
     );
-
-
-    a.click();
-
-    a.remove();
-
-
-    URL.revokeObjectURL(
-      url
-    );
-
-
-    alert(
-      "PDF तयार झाली. आता Downloads मधून WhatsApp वर पाठवा."
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      "PDF Share Error:",
-      error
-    );
-
-
-    alert(
-      "PDF तयार/Share करता आली नाही."
-    );
-
-  }
-}
-
-
-/* =========================
-   EXPENSES
-========================= */
-
-function showExpenses() {
-
-  shell(`
-
-    <main class="page">
-
-      <div class="title">
-        खर्च
-      </div>
-
-
-      ${
-        expensesData.length
-
-          ? expensesData
-              .map(item => `
-
-                <div class="card">
-
-                  <div class="row">
-
-                    <div>
-
-                      <b>
-                        ${escapeHtml(
-                          item.category
-                        )}
-                      </b>
-
-                      <div class="muted">
-                        ${escapeHtml(
-                          item.detail
-                        )}
-                      </div>
-
-                    </div>
-
-
-                    <span class="amount">
-                      ${money(item.amount)}
-                    </span>
-
-                  </div>
-
-                </div>
-
-              `)
-              .join("")
-
-          : `
-
-            <div class="card">
-              अजून खर्च नाही
-            </div>
-
-          `
-      }
-
-
-      <button class="action">
-        ＋ खर्च नोंदवा
-      </button>
-
-    </main>
-
-  `, "expenses");
-}
-
-
-/* =========================
-   REPORTS
-========================= */
-
-function showReports() {
-
-  const collection =
-    receiptsData.reduce(
-      (sum, item) =>
-        sum + Number(item.amount || 0),
-      0
-    );
-
-
-  const expense =
-    expensesData.reduce(
-      (sum, item) =>
-        sum + Number(item.amount || 0),
-      0
-    );
-
-
-  shell(`
-
-    <main class="page">
-
-      <div class="title">
-        अहवाल
-      </div>
-
-
-      <div class="card">
-
-        <b>
-          एकूण जमा
-        </b>
-
-        <div class="amount">
-          ${money(collection)}
-        </div>
-
-      </div>
-
-
-      <div class="card">
-
-        <b>
-          एकूण खर्च
-        </b>
-
-        <div class="amount">
-          ${money(expense)}
-        </div>
-
-      </div>
-
-
-      <div class="card">
-
-        <b>
-          शिल्लक
-        </b>
-
-        <div class="amount">
-          ${money(
-            collection - expense
-          )}
-        </div>
-
-      </div>
-
-
-      <div class="card">
-        <b>पूर्ण उत्सव खाते</b>
-      </div>
-
-
-      <div class="card">
-        <b>दैनिक संकलन अहवाल</b>
-      </div>
-
-
-      <div class="card">
-        <b>कार्यकर्त्यानुसार अहवाल</b>
-      </div>
-
-
-      <div class="card">
-        <b>बाकी वर्गणी यादी</b>
-      </div>
-
-
-      <div class="card">
-        <b>खर्च अहवाल</b>
-      </div>
-
-
-      <div class="card">
-        <b>इतिहास</b>
-      </div>
-
-    </main>
-
-  `, "reports");
-}
-
-
-/* =========================
-   START
-========================= */
-
-loadData();
