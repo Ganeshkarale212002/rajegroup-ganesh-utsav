@@ -206,4 +206,586 @@ function showHome() {
               `)
               .join("")
 
-          : "अ
+          : "अजून पावत्या नाहीत"
+        }
+
+      </div>
+
+    </main>
+
+  `, "home");
+}
+
+function showReceipts() {
+
+  shell(`
+
+    <main class="page">
+
+      <div class="title">
+        पावती
+      </div>
+
+      <input
+        id="receiptSearch"
+        class="search"
+        placeholder="नाव किंवा पावती क्रमांक शोधा"
+        oninput="filterReceipts()"
+      >
+
+      <div id="receiptList"></div>
+
+      <button
+        class="action"
+        onclick="showNewReceiptForm()">
+        ＋ नवीन देणगी
+      </button>
+
+    </main>
+
+  `, "receipts");
+
+  renderReceipts(receiptsData);
+}
+
+function renderReceipts(list) {
+
+  const box =
+    document.getElementById("receiptList");
+
+  if (!box) return;
+
+  if (!list.length) {
+
+    box.innerHTML = `
+      <div class="card">
+        अजून पावत्या नाहीत
+      </div>
+    `;
+
+    return;
+  }
+
+  box.innerHTML = list
+    .slice()
+    .reverse()
+    .map(item => `
+
+      <div class="card">
+
+        <div class="row">
+
+          <div>
+
+            <b>
+              पावती ${item.receiptNumber || "-"}
+            </b>
+
+            <div class="muted">
+              ${item.name || "-"}
+            </div>
+
+            <div class="muted">
+              ${item.paymentMode || "-"}
+            </div>
+
+          </div>
+
+          <span class="amount">
+            ${money(item.amount)}
+          </span>
+
+        </div>
+
+      </div>
+
+    `)
+    .join("");
+}
+
+function filterReceipts() {
+
+  const input =
+    document.getElementById("receiptSearch");
+
+  if (!input) return;
+
+  const value =
+    input.value.toLowerCase().trim();
+
+  const filtered =
+    receiptsData.filter(item => {
+
+      const name =
+        String(item.name || "")
+          .toLowerCase();
+
+      const number =
+        String(item.receiptNumber || "")
+          .toLowerCase();
+
+      return (
+        name.includes(value) ||
+        number.includes(value)
+      );
+    });
+
+  renderReceipts(filtered);
+}
+
+function showNewReceiptForm() {
+
+  root.innerHTML = `
+
+    <div class="app">
+
+      <header>
+
+        <div class="brand">
+
+          <div class="logo">ॐ</div>
+
+          <div>
+            <h1>राजे ग्रुप</h1>
+            <small>नवीन देणगी</small>
+          </div>
+
+        </div>
+
+      </header>
+
+      <main class="page">
+
+        <div class="title">
+          नवीन देणगी
+        </div>
+
+        <div class="card">
+
+          <label>
+            वर्गणीदाराचे नाव
+          </label>
+
+          <input
+            id="donorName"
+            class="search"
+            type="text"
+            placeholder="नाव लिहा"
+          >
+
+          <br>
+
+          <label>
+            रक्कम
+          </label>
+
+          <input
+            id="donorAmount"
+            class="search"
+            type="number"
+            inputmode="numeric"
+            placeholder="उदा. 500"
+          >
+
+          <br>
+
+          <label>
+            पेमेंट मोड
+          </label>
+
+          <select
+            id="paymentMode"
+            class="search">
+
+            <option value="Cash">
+              Cash
+            </option>
+
+            <option value="UPI">
+              UPI
+            </option>
+
+          </select>
+
+          <br>
+
+          <label>
+            कोणी घेतली
+          </label>
+
+          <input
+            id="receivedBy"
+            class="search"
+            type="text"
+            value="विक्रम कोकाटे"
+            placeholder="नाव"
+          >
+
+          <br>
+
+          <label>
+            तारीख
+          </label>
+
+          <input
+            id="donationDate"
+            class="search"
+            type="date"
+          >
+
+          <br>
+
+          <button
+            class="action"
+            onclick="saveReceipt()">
+            ✓ पावती तयार करा
+          </button>
+
+          <button
+            class="action"
+            onclick="showReceipts()">
+            ← मागे
+          </button>
+
+        </div>
+
+      </main>
+
+    </div>
+  `;
+
+  const dateInput =
+    document.getElementById("donationDate");
+
+  const today =
+    new Date().toISOString().split("T")[0];
+
+  dateInput.value = today;
+}
+
+async function saveReceipt() {
+
+  const name =
+    document
+      .getElementById("donorName")
+      .value
+      .trim();
+
+  const amount =
+    Number(
+      document
+        .getElementById("donorAmount")
+        .value
+    );
+
+  const paymentMode =
+    document
+      .getElementById("paymentMode")
+      .value;
+
+  const receivedBy =
+    document
+      .getElementById("receivedBy")
+      .value
+      .trim();
+
+  const dateValue =
+    document
+      .getElementById("donationDate")
+      .value;
+
+  if (!name) {
+
+    alert(
+      "वर्गणीदाराचे नाव टाका."
+    );
+
+    return;
+  }
+
+  if (!amount || amount <= 0) {
+
+    alert(
+      "योग्य रक्कम टाका."
+    );
+
+    return;
+  }
+
+  if (!receivedBy) {
+
+    alert(
+      "कोणी घेतली ते नाव टाका."
+    );
+
+    return;
+  }
+
+  try {
+
+    const snapshot =
+      await db
+        .collection("vargani")
+        .get();
+
+    let nextNumber = 1;
+
+    snapshot.forEach(doc => {
+
+      const number =
+        Number(
+          doc.data().receiptNumber || 0
+        );
+
+      if (number >= nextNumber) {
+        nextNumber = number + 1;
+      }
+
+    });
+
+    let receiptDate =
+      firebase.firestore.Timestamp.now();
+
+    if (dateValue) {
+
+      const selectedDate =
+        new Date(
+          dateValue + "T12:00:00"
+        );
+
+      receiptDate =
+        firebase.firestore.Timestamp.fromDate(
+          selectedDate
+        );
+    }
+
+    await db
+      .collection("vargani")
+      .add({
+
+        name: name,
+
+        amount: amount,
+
+        paymentMode: paymentMode,
+
+        receivedBy: receivedBy,
+
+        receiptNumber: nextNumber,
+
+        date: receiptDate
+
+      });
+
+    alert(
+      "पावती क्रमांक " +
+      nextNumber +
+      " तयार झाली."
+    );
+
+    await loadData();
+
+    showReceipts();
+
+  } catch (error) {
+
+    console.error(
+      "Receipt Save Error:",
+      error
+    );
+
+    alert(
+      "पावती सेव्ह झाली नाही."
+    );
+  }
+}
+
+function showMembers() {
+
+  shell(`
+
+    <main class="page">
+
+      <div class="title">
+        कार्यकर्ते
+      </div>
+
+      ${
+        membersData.length
+
+        ? membersData.map(item => `
+
+            <div class="card">
+
+              <b>
+                ${item.name || "-"}
+              </b>
+
+              <div class="amount">
+                ${item.role || "कार्यकर्ता"}
+              </div>
+
+              <div class="muted">
+                ${item.mobile || ""}
+              </div>
+
+            </div>
+
+          `).join("")
+
+        : `
+          <div class="card">
+            अजून कार्यकर्ते नाहीत
+          </div>
+        `
+      }
+
+      <button class="action">
+        ＋ नवीन कार्यकर्ता
+      </button>
+
+      <button class="action">
+        अध्यक्षपद दुसऱ्याला द्या
+      </button>
+
+    </main>
+
+  `, "members");
+}
+
+function showExpenses() {
+
+  shell(`
+
+    <main class="page">
+
+      <div class="title">
+        खर्च
+      </div>
+
+      ${
+        expensesData.length
+
+        ? expensesData.map(item => `
+
+            <div class="card">
+
+              <div class="row">
+
+                <div>
+
+                  <b>
+                    ${item.category || "-"}
+                  </b>
+
+                  <div class="muted">
+                    ${item.detail || ""}
+                  </div>
+
+                  <div class="muted">
+                    ${item.paidTo || ""}
+                  </div>
+
+                </div>
+
+                <span class="amount">
+                  ${money(item.amount)}
+                </span>
+
+              </div>
+
+            </div>
+
+          `).join("")
+
+        : `
+          <div class="card">
+            अजून खर्च नाही
+          </div>
+        `
+      }
+
+      <button class="action">
+        ＋ खर्च नोंदवा
+      </button>
+
+    </main>
+
+  `, "expenses");
+}
+
+function showReports() {
+
+  const collection =
+    receiptsData.reduce(
+      (sum, item) =>
+        sum + Number(item.amount || 0),
+      0
+    );
+
+  const expense =
+    expensesData.reduce(
+      (sum, item) =>
+        sum + Number(item.amount || 0),
+      0
+    );
+
+  shell(`
+
+    <main class="page">
+
+      <div class="title">
+        अहवाल
+      </div>
+
+      <div class="card">
+        <b>एकूण जमा</b>
+        <div class="amount">
+          ${money(collection)}
+        </div>
+      </div>
+
+      <div class="card">
+        <b>एकूण खर्च</b>
+        <div class="amount">
+          ${money(expense)}
+        </div>
+      </div>
+
+      <div class="card">
+        <b>शिल्लक</b>
+        <div class="amount">
+          ${money(collection - expense)}
+        </div>
+      </div>
+
+      <div class="card">
+        <b>पूर्ण उत्सव खाते</b>
+      </div>
+
+      <div class="card">
+        <b>दैनिक संकलन अहवाल</b>
+      </div>
+
+      <div class="card">
+        <b>कार्यकर्त्यानुसार अहवाल</b>
+      </div>
+
+      <div class="card">
+        <b>बाकी वर्गणी यादी</b>
+      </div>
+
+      <div class="card">
+        <b>खर्च अहवाल</b>
+      </div>
+
+      <div class="card">
+        <b>इतिहास</b>
+      </div>
+
+    </main>
+
+  `, "reports");
+}
+
+loadData();
