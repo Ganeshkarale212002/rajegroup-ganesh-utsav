@@ -27,6 +27,11 @@ let profileData = {
   treasurerSign: ""
 };
 
+
+/* =========================
+   BASIC FUNCTIONS
+========================= */
+
 function money(value) {
   return "₹ " + Number(value || 0).toLocaleString("en-IN");
 }
@@ -40,52 +45,96 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function formatDate(value) {
+  if (!value) return "-";
+
+  try {
+    if (value.toDate) {
+      return value.toDate().toLocaleDateString("mr-IN");
+    }
+
+    return new Date(value).toLocaleDateString("mr-IN");
+
+  } catch (e) {
+    return "-";
+  }
+}
+
+
+/* =========================
+   LOAD FIREBASE DATA
+========================= */
+
 async function loadData() {
+
   try {
 
-    const r = await db.collection("vargani").get();
+    const r =
+      await db.collection("vargani").get();
 
-    receiptsData = r.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    receiptsData =
+      r.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
 
-    const e = await db.collection("expenses").get();
 
-    expensesData = e.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    const e =
+      await db.collection("expenses").get();
 
-    const m = await db.collection("members").get();
+    expensesData =
+      e.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
 
-    membersData = m.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
 
-    const p = await db
-      .collection("profile")
-      .doc("mandal")
-      .get();
+    const m =
+      await db.collection("members").get();
+
+    membersData =
+      m.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+
+    const p =
+      await db
+        .collection("profile")
+        .doc("mandal")
+        .get();
 
     if (p.exists) {
+
       profileData = {
         ...profileData,
         ...p.data()
       };
+
     }
 
   } catch (error) {
-    console.error("Firebase Error:", error);
+
+    console.error(
+      "Firebase Error:",
+      error
+    );
+
   }
 
   showHome();
 }
 
+
+/* =========================
+   MAIN APP SHELL
+========================= */
+
 function shell(content, active) {
 
   root.innerHTML = `
+
     <div class="app">
 
       <header>
@@ -104,7 +153,9 @@ function shell(content, active) {
 
           <div>
 
-            <h1>राजे ग्रुप</h1>
+            <h1>
+              राजे ग्रुप
+            </h1>
 
             <small>
               ${escapeHtml(profileData.mandalName)}
@@ -114,11 +165,15 @@ function shell(content, active) {
 
         </div>
 
-        <div>🔔</div>
+        <div>
+          🔔
+        </div>
 
       </header>
 
+
       ${content}
+
 
       <nav>
 
@@ -131,6 +186,7 @@ function shell(content, active) {
 
         </button>
 
+
         <button
           class="${active === "receipts" ? "active" : ""}"
           onclick="showReceipts()">
@@ -139,6 +195,7 @@ function shell(content, active) {
           <span>पावती</span>
 
         </button>
+
 
         <button
           class="${active === "members" ? "active" : ""}"
@@ -149,6 +206,7 @@ function shell(content, active) {
 
         </button>
 
+
         <button
           class="${active === "expenses" ? "active" : ""}"
           onclick="showExpenses()">
@@ -157,6 +215,7 @@ function shell(content, active) {
           <span>खर्च</span>
 
         </button>
+
 
         <button
           class="${active === "reports" ? "active" : ""}"
@@ -173,6 +232,11 @@ function shell(content, active) {
   `;
 }
 
+
+/* =========================
+   HOME
+========================= */
+
 function showHome() {
 
   const collection =
@@ -182,12 +246,14 @@ function showHome() {
       0
     );
 
+
   const expense =
     expensesData.reduce(
       (sum, item) =>
         sum + Number(item.amount || 0),
       0
     );
+
 
   shell(`
 
@@ -200,6 +266,7 @@ function showHome() {
       <div class="title">
         राजे ग्रुप
       </div>
+
 
       <div class="balance">
 
@@ -219,6 +286,7 @@ function showHome() {
 
       </div>
 
+
       <div class="grid">
 
         <div class="card">
@@ -232,6 +300,7 @@ function showHome() {
           </b>
 
         </div>
+
 
         <div class="card">
 
@@ -247,9 +316,11 @@ function showHome() {
 
       </div>
 
+
       <h3>
         अलीकडील पावत्या
       </h3>
+
 
       <div class="card">
 
@@ -288,6 +359,11 @@ function showHome() {
   `, "home");
 }
 
+
+/* =========================
+   RECEIPTS LIST
+========================= */
+
 function showReceipts() {
 
   shell(`
@@ -298,6 +374,7 @@ function showReceipts() {
         पावती
       </div>
 
+
       <input
         id="receiptSearch"
         class="search"
@@ -305,7 +382,9 @@ function showReceipts() {
         oninput="filterReceipts()"
       >
 
+
       <div id="receiptList"></div>
+
 
       <button
         class="action"
@@ -319,89 +398,112 @@ function showReceipts() {
 
   `, "receipts");
 
+
   renderReceipts(receiptsData);
 }
+
 
 function renderReceipts(list) {
 
   const box =
-    document.getElementById("receiptList");
+    document.getElementById(
+      "receiptList"
+    );
 
   if (!box) return;
+
 
   if (!list.length) {
 
     box.innerHTML = `
+
       <div class="card">
         अजून पावत्या नाहीत
       </div>
+
     `;
 
     return;
   }
 
-  box.innerHTML = list
-    .slice()
-    .reverse()
-    .map(item => `
 
-      <div class="card">
+  box.innerHTML =
+    list
+      .slice()
+      .reverse()
+      .map(item => `
 
-        <div class="row">
+        <div class="card">
 
-          <div>
+          <div class="row">
 
-            <b>
-              पावती ${item.receiptNumber || "-"}
-            </b>
+            <div>
 
-            <div class="muted">
-              ${escapeHtml(item.name)}
+              <b>
+                पावती ${item.receiptNumber || "-"}
+              </b>
+
+              <div class="muted">
+                ${escapeHtml(item.name)}
+              </div>
+
+              <div class="muted">
+                ${escapeHtml(item.paymentMode)}
+              </div>
+
+              <div class="muted">
+                ${formatDate(item.date)}
+              </div>
+
             </div>
 
-            <div class="muted">
-              ${escapeHtml(item.paymentMode)}
-            </div>
+
+            <span class="amount">
+              ${money(item.amount)}
+            </span>
 
           </div>
 
-          <span class="amount">
-            ${money(item.amount)}
-          </span>
+
+          <button
+            class="action"
+            onclick="printReceipt('${item.id}')">
+
+            📄 PDF / Print
+
+          </button>
+
+
+          <button
+            class="action"
+            onclick="shareReceiptPDF('${item.id}')">
+
+            📲 WhatsApp वर PDF पाठवा
+
+          </button>
 
         </div>
 
-        <button
-          class="action"
-          onclick="printReceipt('${item.id}')">
-
-          📄 PDF / Print
-
-        </button>
-
-        <button
-          class="action"
-          onclick="shareWhatsApp('${item.id}')">
-
-          📲 WhatsApp Share
-
-        </button>
-
-      </div>
-
-    `)
-    .join("");
+      `)
+      .join("");
 }
+
 
 function filterReceipts() {
 
   const input =
-    document.getElementById("receiptSearch");
+    document.getElementById(
+      "receiptSearch"
+    );
 
   if (!input) return;
 
+
   const value =
-    input.value.toLowerCase().trim();
+    input.value
+      .toLowerCase()
+      .trim();
+
 
   const filtered =
     receiptsData.filter(item => {
@@ -410,18 +512,27 @@ function filterReceipts() {
         String(item.name || "")
           .toLowerCase();
 
+
       const number =
         String(item.receiptNumber || "")
           .toLowerCase();
+
 
       return (
         name.includes(value) ||
         number.includes(value)
       );
+
     });
+
 
   renderReceipts(filtered);
 }
+
+
+/* =========================
+   NEW RECEIPT FORM
+========================= */
 
 function showNewReceiptForm() {
 
@@ -453,11 +564,13 @@ function showNewReceiptForm() {
 
       </header>
 
+
       <main class="page">
 
         <div class="title">
           नवीन देणगी
         </div>
+
 
         <div class="card">
 
@@ -472,7 +585,9 @@ function showNewReceiptForm() {
             placeholder="नाव लिहा"
           >
 
+
           <br>
+
 
           <label>
             रक्कम
@@ -486,7 +601,9 @@ function showNewReceiptForm() {
             placeholder="उदा. 500"
           >
 
+
           <br>
+
 
           <label>
             पेमेंट मोड
@@ -506,7 +623,9 @@ function showNewReceiptForm() {
 
           </select>
 
+
           <br>
+
 
           <label>
             कोणी घेतली
@@ -517,10 +636,11 @@ function showNewReceiptForm() {
             class="search"
             type="text"
             value="${escapeHtml(profileData.president)}"
-            placeholder="नाव"
           >
 
+
           <br>
+
 
           <label>
             तारीख
@@ -532,7 +652,9 @@ function showNewReceiptForm() {
             type="date"
           >
 
+
           <br>
+
 
           <button
             class="action"
@@ -541,6 +663,7 @@ function showNewReceiptForm() {
             ✓ पावती तयार करा
 
           </button>
+
 
           <button
             class="action"
@@ -555,37 +678,58 @@ function showNewReceiptForm() {
       </main>
 
     </div>
+
   `;
 
-  document.getElementById("donationDate").value =
-    new Date().toISOString().split("T")[0];
+
+  document.getElementById(
+    "donationDate"
+  ).value =
+    new Date()
+      .toISOString()
+      .split("T")[0];
 }
+
+
+/* =========================
+   SAVE RECEIPT
+========================= */
 
 async function saveReceipt() {
 
   const name =
-    document.getElementById("donorName")
+    document
+      .getElementById("donorName")
       .value
       .trim();
+
 
   const amount =
     Number(
-      document.getElementById("donorAmount")
+      document
+        .getElementById("donorAmount")
         .value
     );
 
+
   const paymentMode =
-    document.getElementById("paymentMode")
+    document
+      .getElementById("paymentMode")
       .value;
 
+
   const receivedBy =
-    document.getElementById("receivedBy")
+    document
+      .getElementById("receivedBy")
       .value
       .trim();
 
+
   const dateValue =
-    document.getElementById("donationDate")
+    document
+      .getElementById("donationDate")
       .value;
+
 
   if (!name) {
 
@@ -596,6 +740,7 @@ async function saveReceipt() {
     return;
   }
 
+
   if (!amount || amount <= 0) {
 
     alert(
@@ -604,6 +749,7 @@ async function saveReceipt() {
 
     return;
   }
+
 
   if (!receivedBy) {
 
@@ -614,6 +760,7 @@ async function saveReceipt() {
     return;
   }
 
+
   try {
 
     const snapshot =
@@ -621,7 +768,9 @@ async function saveReceipt() {
         .collection("vargani")
         .get();
 
+
     let nextNumber = 1;
+
 
     snapshot.forEach(doc => {
 
@@ -629,6 +778,7 @@ async function saveReceipt() {
         Number(
           doc.data().receiptNumber || 0
         );
+
 
       if (number >= nextNumber) {
 
@@ -639,8 +789,10 @@ async function saveReceipt() {
 
     });
 
+
     let receiptDate =
       firebase.firestore.Timestamp.now();
+
 
     if (dateValue) {
 
@@ -650,7 +802,9 @@ async function saveReceipt() {
             dateValue + "T12:00:00"
           )
         );
+
     }
+
 
     await db
       .collection("vargani")
@@ -670,11 +824,13 @@ async function saveReceipt() {
 
       });
 
+
     alert(
       "पावती क्रमांक " +
       nextNumber +
       " तयार झाली."
     );
+
 
     await loadData();
 
@@ -687,64 +843,19 @@ async function saveReceipt() {
       error
     );
 
+
     alert(
       "पावती सेव्ह झाली नाही."
     );
-  }
-}
 
-function shareWhatsApp(id) {
-
-  const receipt =
-    receiptsData.find(
-      item => item.id === id
-    );
-
-  if (!receipt) {
-
-    alert(
-      "पावती सापडली नाही."
-    );
-
-    return;
   }
 
-  const date =
-    receipt.date &&
-    receipt.date.toDate
-      ? receipt.date
-          .toDate()
-          .toLocaleDateString("mr-IN")
-      : "-";
-
-  const message = `
-
-🧾 *गणेश मित्र मंडळ राजे ग्रुप वारणानगर*
-
-पावती क्रमांक: ${receipt.receiptNumber || "-"}
-दिनांक: ${date}
-
-वर्गणीदार: ${receipt.name || "-"}
-रक्कम: ${money(receipt.amount)}
-पेमेंट मोड: ${receipt.paymentMode || "-"}
-रक्कम स्वीकारणारे: ${receipt.receivedBy || "-"}
-
-अध्यक्ष: ${profileData.president || "-"}
-उपाध्यक्ष: ${profileData.vicePresident || "-"}
-खजिनदार: ${profileData.treasurer || "-"}
-
-🙏 धन्यवाद
-  `.trim();
-
-  const whatsappUrl =
-    "https://wa.me/?text=" +
-    encodeURIComponent(message);
-
-  window.open(
-    whatsappUrl,
-    "_blank"
-  );
 }
+
+
+/* =========================
+   PROFILE
+========================= */
 
 function showMembers() {
 
@@ -756,38 +867,44 @@ function showMembers() {
         कार्यकर्ते
       </div>
 
+
       ${
         membersData.length
 
-          ? membersData.map(item => `
+          ? membersData
+              .map(item => `
 
-              <div class="card">
+                <div class="card">
 
-                <b>
-                  ${escapeHtml(item.name)}
-                </b>
+                  <b>
+                    ${escapeHtml(item.name)}
+                  </b>
 
-                <div class="amount">
-                  ${escapeHtml(
-                    item.role ||
-                    "कार्यकर्ता"
-                  )}
+                  <div class="amount">
+                    ${escapeHtml(
+                      item.role ||
+                      "कार्यकर्ता"
+                    )}
+                  </div>
+
+                  <div class="muted">
+                    ${escapeHtml(item.mobile)}
+                  </div>
+
                 </div>
 
-                <div class="muted">
-                  ${escapeHtml(item.mobile)}
-                </div>
-
-              </div>
-
-            `).join("")
+              `)
+              .join("")
 
           : `
+
             <div class="card">
               अजून कार्यकर्ते नाहीत
             </div>
+
           `
       }
+
 
       <button
         class="action"
@@ -801,6 +918,7 @@ function showMembers() {
 
   `, "members");
 }
+
 
 function showProfile() {
 
@@ -832,11 +950,13 @@ function showProfile() {
 
       </header>
 
+
       <main class="page">
 
         <div class="title">
           मंडळ प्रोफाइल
         </div>
+
 
         <div class="card">
 
@@ -852,7 +972,9 @@ function showProfile() {
             )}"
           >
 
+
           <br>
+
 
           <label>
             अध्यक्षाचे नाव
@@ -866,7 +988,9 @@ function showProfile() {
             )}"
           >
 
+
           <br>
+
 
           <label>
             उपाध्यक्षाचे नाव
@@ -880,7 +1004,9 @@ function showProfile() {
             )}"
           >
 
+
           <br>
+
 
           <label>
             खजिनदाराचे नाव
@@ -894,10 +1020,12 @@ function showProfile() {
             )}"
           >
 
-          <br>
+
+          <br><br>
+
 
           <label>
-            Logo Upload
+            🖼️ Logo Upload
           </label>
 
           <input
@@ -906,10 +1034,12 @@ function showProfile() {
             accept="image/*"
           >
 
+
           <br><br>
 
+
           <label>
-            अध्यक्ष Signature Upload
+            ✍️ अध्यक्ष Signature
           </label>
 
           <input
@@ -918,10 +1048,12 @@ function showProfile() {
             accept="image/*"
           >
 
+
           <br><br>
 
+
           <label>
-            उपाध्यक्ष Signature Upload
+            ✍️ उपाध्यक्ष Signature
           </label>
 
           <input
@@ -930,10 +1062,12 @@ function showProfile() {
             accept="image/*"
           >
 
+
           <br><br>
 
+
           <label>
-            खजिनदार Signature Upload
+            ✍️ खजिनदार Signature
           </label>
 
           <input
@@ -942,7 +1076,9 @@ function showProfile() {
             accept="image/*"
           >
 
+
           <br><br>
+
 
           <button
             class="action"
@@ -951,6 +1087,7 @@ function showProfile() {
             ✓ प्रोफाइल सेव्ह करा
 
           </button>
+
 
           <button
             class="action"
@@ -968,6 +1105,11 @@ function showProfile() {
   `;
 }
 
+
+/* =========================
+   IMAGE SAVE
+========================= */
+
 function readImage(file) {
 
   return new Promise(
@@ -978,15 +1120,19 @@ function readImage(file) {
         resolve("");
 
         return;
+
       }
+
 
       const reader =
         new FileReader();
+
 
       reader.onload = () => {
 
         const img =
           new Image();
+
 
         img.onload = () => {
 
@@ -995,11 +1141,15 @@ function readImage(file) {
               "canvas"
             );
 
+
           const max = 700;
 
-          let width = img.width;
+          let width =
+            img.width;
 
-          let height = img.height;
+          let height =
+            img.height;
+
 
           if (width > max) {
 
@@ -1007,7 +1157,9 @@ function readImage(file) {
               height * max / width;
 
             width = max;
+
           }
+
 
           canvas.width =
             width;
@@ -1015,8 +1167,12 @@ function readImage(file) {
           canvas.height =
             height;
 
+
           const ctx =
-            canvas.getContext("2d");
+            canvas.getContext(
+              "2d"
+            );
+
 
           ctx.drawImage(
             img,
@@ -1026,26 +1182,37 @@ function readImage(file) {
             height
           );
 
+
           resolve(
             canvas.toDataURL(
               "image/jpeg",
               0.75
             )
           );
+
         };
 
-        img.onerror = reject;
+
+        img.onerror =
+          reject;
+
 
         img.src =
           reader.result;
+
       };
 
-      reader.onerror = reject;
+
+      reader.onerror =
+        reject;
+
 
       reader.readAsDataURL(file);
+
     }
   );
 }
+
 
 async function saveProfile() {
 
@@ -1053,31 +1220,39 @@ async function saveProfile() {
 
     const logo =
       await readImage(
-        document.getElementById(
-          "logoFile"
-        ).files[0]
+        document
+          .getElementById("logoFile")
+          .files[0]
       );
+
 
     const presidentSign =
       await readImage(
-        document.getElementById(
-          "presidentSignFile"
-        ).files[0]
+        document
+          .getElementById("presidentSignFile")
+          .files[0]
       );
+
 
     const vicePresidentSign =
       await readImage(
-        document.getElementById(
-          "vicePresidentSignFile"
-        ).files[0]
+        document
+          .getElementById(
+            "vicePresidentSignFile"
+          )
+          .files[0]
       );
+
 
     const treasurerSign =
       await readImage(
-        document.getElementById(
-          "treasurerSignFile"
-        ).files[0]
+        document
+          .getElementById(
+            "treasurerSignFile"
+          )
+          .files[0]
       );
+
 
     const data = {
 
@@ -1107,24 +1282,38 @@ async function saveProfile() {
 
     };
 
+
     if (logo) {
-      data.logo = logo;
+
+      data.logo =
+        logo;
+
     }
+
 
     if (presidentSign) {
+
       data.presidentSign =
         presidentSign;
+
     }
+
 
     if (vicePresidentSign) {
+
       data.vicePresidentSign =
         vicePresidentSign;
+
     }
 
+
     if (treasurerSign) {
+
       data.treasurerSign =
         treasurerSign;
+
     }
+
 
     await db
       .collection("profile")
@@ -1134,14 +1323,20 @@ async function saveProfile() {
         { merge: true }
       );
 
+
     profileData = {
+
       ...profileData,
+
       ...data
+
     };
+
 
     alert(
       "प्रोफाइल सेव्ह झाली."
     );
+
 
     showMembers();
 
@@ -1152,34 +1347,28 @@ async function saveProfile() {
       error
     );
 
+
     alert(
       "प्रोफाइल सेव्ह करताना समस्या आली."
     );
+
   }
+
 }
 
-function printReceipt(id) {
 
-  const receipt =
-    receiptsData.find(
-      item => item.id === id
-    );
+/* =========================
+   RECEIPT HTML
+========================= */
 
-  if (!receipt) {
-
-    alert(
-      "पावती सापडली नाही."
-    );
-
-    return;
-  }
+function receiptHTML(receipt) {
 
   const logo =
     profileData.logo
 
       ? `
         <img
-          class="receiptLogo"
+          class="main-logo"
           src="${profileData.logo}"
         >
       `
@@ -1190,50 +1379,47 @@ function printReceipt(id) {
         </div>
       `;
 
+
   const presidentSign =
     profileData.presidentSign
 
       ? `
         <img
+          class="sign"
           src="${profileData.presidentSign}"
         >
       `
 
       : "";
 
-  const vicePresidentSign =
+
+  const viceSign =
     profileData.vicePresidentSign
 
       ? `
         <img
+          class="sign"
           src="${profileData.vicePresidentSign}"
         >
       `
 
       : "";
 
+
   const treasurerSign =
     profileData.treasurerSign
 
       ? `
         <img
+          class="sign"
           src="${profileData.treasurerSign}"
         >
       `
 
       : "";
 
-  const date =
-    receipt.date &&
-    receipt.date.toDate
 
-      ? receipt.date
-          .toDate()
-          .toLocaleDateString("mr-IN")
-
-      : "";
-
-  const html = `
+  return `
 
 <!DOCTYPE html>
 
@@ -1243,39 +1429,66 @@ function printReceipt(id) {
 
 <meta charset="UTF-8">
 
+<meta name="viewport"
+      content="width=device-width">
+
 <title>
-पावती ${receipt.receiptNumber}
+पावती ${receipt.receiptNumber || ""}
 </title>
+
 
 <style>
 
+* {
+  box-sizing: border-box;
+}
+
 body {
-
-  font-family:
-    Arial,
-    sans-serif;
-
-  background: #eee;
 
   margin: 0;
 
-  padding: 20px;
+  padding: 15px;
+
+  background: #eeeeee;
+
+  font-family:
+    Arial,
+    "Noto Sans Devanagari",
+    sans-serif;
+
+  color: #222;
 
 }
 
 .receipt {
 
-  max-width: 700px;
+  width: 100%;
+
+  max-width: 760px;
 
   margin: auto;
 
-  background: white;
+  background: #fff;
 
-  border: 2px solid #333;
+  border: 3px solid #3b2418;
 
-  padding: 25px;
+  padding: 18px;
 
-  box-sizing: border-box;
+  position: relative;
+
+}
+
+.receipt:before {
+
+  content: "";
+
+  position: absolute;
+
+  inset: 7px;
+
+  border: 1px solid #8a6a55;
+
+  pointer-events: none;
 
 }
 
@@ -1283,74 +1496,105 @@ body {
 
   text-align: center;
 
+  position: relative;
+
+  z-index: 1;
+
 }
 
-.receiptLogo {
+.main-logo {
 
-  width: 130px;
+  width: 145px;
 
-  height: 130px;
+  height: 145px;
 
   object-fit: contain;
 
   display: block;
 
-  margin: auto;
+  margin: 0 auto 5px;
 
 }
 
 .om {
 
-  font-size: 70px;
+  font-size: 80px;
+
+  line-height: 100px;
 
 }
 
-h1 {
+.mandal {
 
-  margin: 8px 0;
+  font-size: 27px;
 
-}
+  font-weight: 700;
 
-.sub {
-
-  font-size: 18px;
+  margin-top: 5px;
 
 }
 
-.top {
+.subtitle {
+
+  font-size: 19px;
+
+  font-weight: 600;
+
+  margin-top: 5px;
+
+}
+
+.topline {
 
   display: flex;
 
-  justify-content:
-    space-between;
+  justify-content: space-between;
 
-  margin-top: 20px;
+  gap: 15px;
 
-  border-top:
-    1px solid #999;
+  margin-top: 18px;
 
-  border-bottom:
-    1px solid #999;
+  padding: 10px;
 
-  padding: 10px 0;
+  border-top: 2px solid #3b2418;
+
+  border-bottom: 2px solid #3b2418;
+
+  font-size: 17px;
+
+  position: relative;
+
+  z-index: 1;
 
 }
 
 .info {
 
-  margin-top: 20px;
-
-  line-height: 2;
+  margin-top: 15px;
 
   font-size: 18px;
 
+  line-height: 2;
+
+  position: relative;
+
+  z-index: 1;
+
 }
 
-.amount {
+.info-row {
 
-  font-size: 25px;
+  border-bottom: 1px dotted #777;
 
-  font-weight: bold;
+  padding: 3px 0;
+
+}
+
+.big-amount {
+
+  font-size: 27px;
+
+  font-weight: 800;
 
 }
 
@@ -1358,52 +1602,79 @@ h1 {
 
   display: flex;
 
-  align-items:
-    flex-end;
+  align-items: flex-end;
 
-  justify-content:
-    space-between;
+  justify-content: space-between;
 
-  margin-top: 60px;
+  margin-top: 65px;
+
+  position: relative;
+
+  z-index: 1;
+
+}
+
+.signature-box {
+
+  width: 29%;
 
   text-align: center;
 
-}
-
-.signature {
-
-  width: 30%;
+  min-height: 105px;
 
 }
 
-.signature img {
+.signature-box.president {
 
-  width: 110px;
+  width: 34%;
 
-  height: 60px;
+}
+
+.sign {
+
+  width: 115px;
+
+  height: 58px;
 
   object-fit: contain;
 
   display: block;
 
-  margin: auto;
+  margin: 0 auto 3px;
 
 }
 
-.line {
+.sign-line {
 
-  border-top:
-    1px solid #333;
-
-  margin-top: 5px;
+  border-top: 1px solid #333;
 
   padding-top: 5px;
 
+  font-size: 16px;
+
+  font-weight: 600;
+
 }
 
-.president {
+.role {
 
-  width: 34%;
+  font-size: 15px;
+
+  font-weight: normal;
+
+}
+
+.footer {
+
+  text-align: center;
+
+  margin-top: 20px;
+
+  font-size: 13px;
+
+  position: relative;
+
+  z-index: 1;
 
 }
 
@@ -1419,9 +1690,9 @@ h1 {
 
   .receipt {
 
-    border: 2px solid #333;
+    max-width: none;
 
-    margin: 0;
+    border: 3px solid #3b2418;
 
   }
 
@@ -1431,81 +1702,86 @@ h1 {
 
 </head>
 
+
 <body>
 
+
 <div class="receipt">
+
 
   <div class="header">
 
     ${logo}
 
-    <h1>
+
+    <div class="mandal">
+
       ${escapeHtml(
         profileData.mandalName
       )}
-    </h1>
 
-    <div class="sub">
+    </div>
+
+
+    <div class="subtitle">
+
       गणेश उत्सव वर्गणी पावती
+
     </div>
 
   </div>
 
-  <div class="top">
+
+  <div class="topline">
 
     <div>
 
-      <b>
-        पावती क्रमांक:
-      </b>
+      <b>पावती क्र.:</b>
 
       ${receipt.receiptNumber || "-"}
 
     </div>
 
+
     <div>
 
-      <b>
-        दिनांक:
-      </b>
+      <b>दिनांक:</b>
 
-      ${date}
+      ${formatDate(receipt.date)}
 
     </div>
 
   </div>
 
+
   <div class="info">
 
-    <div>
 
-      <b>
-        वर्गणीदाराचे नाव:
-      </b>
+    <div class="info-row">
 
-      ${escapeHtml(
-        receipt.name
-      )}
+      <b>वर्गणीदाराचे नाव:</b>
+
+      ${escapeHtml(receipt.name)}
 
     </div>
 
-    <div>
 
-      <b>
-        रक्कम:
-      </b>
+    <div class="info-row">
 
-      <span class="amount">
+      <b>रक्कम:</b>
+
+      <span class="big-amount">
+
         ${money(receipt.amount)}
+
       </span>
 
     </div>
 
-    <div>
 
-      <b>
-        पेमेंट मोड:
-      </b>
+    <div class="info-row">
+
+      <b>पेमेंट मोड:</b>
 
       ${escapeHtml(
         receipt.paymentMode
@@ -1513,11 +1789,10 @@ h1 {
 
     </div>
 
-    <div>
 
-      <b>
-        रक्कम स्वीकारणारे:
-      </b>
+    <div class="info-row">
+
+      <b>रक्कम स्वीकारणारे:</b>
 
       ${escapeHtml(
         receipt.receivedBy
@@ -1525,82 +1800,117 @@ h1 {
 
     </div>
 
+
   </div>
+
 
   <div class="signatures">
 
-    <div class="signature">
 
-      ${vicePresidentSign}
+    <div class="signature-box">
 
-      <div class="line">
+      ${viceSign}
+
+
+      <div class="sign-line">
 
         ${escapeHtml(
           profileData.vicePresident
         )}
 
-        <br>
-
-        उपाध्यक्ष
+        <div class="role">
+          उपाध्यक्ष
+        </div>
 
       </div>
 
     </div>
 
-    <div class="signature president">
+
+    <div class="signature-box president">
 
       ${presidentSign}
 
-      <div class="line">
+
+      <div class="sign-line">
 
         ${escapeHtml(
           profileData.president
         )}
 
-        <br>
-
-        अध्यक्ष
+        <div class="role">
+          अध्यक्ष
+        </div>
 
       </div>
 
     </div>
 
-    <div class="signature">
+
+    <div class="signature-box">
 
       ${treasurerSign}
 
-      <div class="line">
+
+      <div class="sign-line">
 
         ${escapeHtml(
           profileData.treasurer
         )}
 
-        <br>
-
-        खजिनदार
+        <div class="role">
+          खजिनदार
+        </div>
 
       </div>
 
     </div>
 
+
   </div>
+
+
+  <div class="footer">
+
+    धन्यवाद 🙏
+
+  </div>
+
 
 </div>
 
-<script>
-
-window.onload = function() {
-
-  window.print();
-
-};
-
-</script>
 
 </body>
 
 </html>
-`;
+
+  `;
+
+}
+
+
+/* =========================
+   PRINT / PDF
+========================= */
+
+function printReceipt(id) {
+
+  const receipt =
+    receiptsData.find(
+      item => item.id === id
+    );
+
+
+  if (!receipt) {
+
+    alert(
+      "पावती सापडली नाही."
+    );
+
+    return;
+
+  }
+
 
   const win =
     window.open(
@@ -1608,21 +1918,603 @@ window.onload = function() {
       "_blank"
     );
 
+
   if (!win) {
 
     alert(
-      "Popup बंद आहे. Browser मध्ये popup allow करा."
+      "Popup बंद आहे. Browser popup allow करा."
     );
 
     return;
+
   }
+
 
   win.document.open();
 
-  win.document.write(html);
+  win.document.write(
+    receiptHTML(receipt)
+  );
 
   win.document.close();
+
+
+  setTimeout(() => {
+
+    win.print();
+
+  }, 700);
+
 }
+
+
+/* =========================
+   LOAD jsPDF
+========================= */
+
+function loadJsPDF() {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      if (
+        window.jspdf &&
+        window.jspdf.jsPDF
+      ) {
+
+        resolve();
+
+        return;
+
+      }
+
+
+      const script =
+        document.createElement(
+          "script"
+        );
+
+
+      script.src =
+        "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+
+
+      script.onload =
+        () => resolve();
+
+
+      script.onerror =
+        () =>
+          reject(
+            new Error(
+              "PDF library load failed"
+            )
+          );
+
+
+      document.head.appendChild(
+        script
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================
+   HTML TO PDF
+========================= */
+
+async function makeReceiptPDF(id) {
+
+  const receipt =
+    receiptsData.find(
+      item => item.id === id
+    );
+
+
+  if (!receipt) {
+
+    throw new Error(
+      "Receipt not found"
+    );
+
+  }
+
+
+  await loadJsPDF();
+
+
+  const { jsPDF } =
+    window.jspdf;
+
+
+  const doc =
+    new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+
+
+  const margin = 12;
+
+  const pageWidth =
+    210;
+
+  const pageHeight =
+    297;
+
+
+  doc.setLineWidth(0.8);
+
+  doc.rect(
+    margin,
+    margin,
+    pageWidth - margin * 2,
+    pageHeight - margin * 2
+  );
+
+
+  doc.setLineWidth(0.3);
+
+  doc.rect(
+    margin + 3,
+    margin + 3,
+    pageWidth - margin * 2 - 6,
+    pageHeight - margin * 2 - 6
+  );
+
+
+  let y = 27;
+
+
+  if (profileData.logo) {
+
+    try {
+
+      doc.addImage(
+        profileData.logo,
+        "JPEG",
+        78,
+        y,
+        54,
+        38
+      );
+
+      y += 43;
+
+    } catch (e) {
+
+      y += 5;
+
+    }
+
+  } else {
+
+    doc.setFontSize(30);
+
+    doc.text(
+      "OM",
+      105,
+      y + 12,
+      { align: "center" }
+    );
+
+    y += 22;
+
+  }
+
+
+  doc.setFontSize(18);
+
+  doc.setFont("helvetica", "bold");
+
+  doc.text(
+    profileData.mandalName,
+    105,
+    y,
+    { align: "center" }
+  );
+
+
+  y += 9;
+
+
+  doc.setFontSize(12);
+
+  doc.text(
+    "Ganesh Utsav Vargani Pavti",
+    105,
+    y,
+    { align: "center" }
+  );
+
+
+  y += 10;
+
+
+  doc.line(
+    20,
+    y,
+    190,
+    y
+  );
+
+
+  y += 9;
+
+
+  doc.setFontSize(11);
+
+  doc.setFont("helvetica", "normal");
+
+
+  doc.text(
+    "Pavti No.: " +
+    String(receipt.receiptNumber || "-"),
+    22,
+    y
+  );
+
+
+  doc.text(
+    "Date: " +
+    formatDate(receipt.date),
+    188,
+    y,
+    { align: "right" }
+  );
+
+
+  y += 10;
+
+
+  doc.line(
+    20,
+    y,
+    190,
+    y
+  );
+
+
+  y += 12;
+
+
+  doc.setFontSize(12);
+
+
+  doc.text(
+    "Varganidarache nav: " +
+    String(receipt.name || ""),
+    22,
+    y
+  );
+
+
+  y += 10;
+
+
+  doc.text(
+    "Rakkam: " +
+    money(receipt.amount),
+    22,
+    y
+  );
+
+
+  y += 10;
+
+
+  doc.text(
+    "Payment Mode: " +
+    String(receipt.paymentMode || ""),
+    22,
+    y
+  );
+
+
+  y += 10;
+
+
+  doc.text(
+    "Rakkam sweekaranare: " +
+    String(receipt.receivedBy || ""),
+    22,
+    y
+  );
+
+
+  y += 45;
+
+
+  /* signatures */
+
+  const leftX = 48;
+
+  const centerX = 105;
+
+  const rightX = 162;
+
+
+  if (profileData.vicePresidentSign) {
+
+    try {
+
+      doc.addImage(
+        profileData.vicePresidentSign,
+        "JPEG",
+        leftX - 18,
+        y - 15,
+        36,
+        18
+      );
+
+    } catch (e) {}
+
+  }
+
+
+  if (profileData.presidentSign) {
+
+    try {
+
+      doc.addImage(
+        profileData.presidentSign,
+        "JPEG",
+        centerX - 20,
+        y - 15,
+        40,
+        20
+      );
+
+    } catch (e) {}
+
+  }
+
+
+  if (profileData.treasurerSign) {
+
+    try {
+
+      doc.addImage(
+        profileData.treasurerSign,
+        "JPEG",
+        rightX - 18,
+        y - 15,
+        36,
+        18
+      );
+
+    } catch (e) {}
+
+  }
+
+
+  doc.line(
+    leftX - 25,
+    y + 5,
+    leftX + 25,
+    y + 5
+  );
+
+
+  doc.line(
+    centerX - 28,
+    y + 5,
+    centerX + 28,
+    y + 5
+  );
+
+
+  doc.line(
+    rightX - 25,
+    y + 5,
+    rightX + 25,
+    y + 5
+  );
+
+
+  doc.setFontSize(10);
+
+
+  doc.text(
+    profileData.vicePresident || "",
+    leftX,
+    y + 11,
+    { align: "center" }
+  );
+
+
+  doc.text(
+    "Upadhyaksha",
+    leftX,
+    y + 17,
+    { align: "center" }
+  );
+
+
+  doc.text(
+    profileData.president || "",
+    centerX,
+    y + 11,
+    { align: "center" }
+  );
+
+
+  doc.text(
+    "Adhyaksha",
+    centerX,
+    y + 17,
+    { align: "center" }
+  );
+
+
+  doc.text(
+    profileData.treasurer || "",
+    rightX,
+    y + 11,
+    { align: "center" }
+  );
+
+
+  doc.text(
+    "Khajindar",
+    rightX,
+    y + 17,
+    { align: "center" }
+  );
+
+
+  doc.setFontSize(9);
+
+
+  doc.text(
+    "Dhanyawad",
+    105,
+    275,
+    { align: "center" }
+  );
+
+
+  return doc.output(
+    "blob"
+  );
+
+}
+
+
+/* =========================
+   WHATSAPP PDF SHARE
+========================= */
+
+async function shareReceiptPDF(id) {
+
+  const receipt =
+    receiptsData.find(
+      item => item.id === id
+    );
+
+
+  if (!receipt) {
+
+    alert(
+      "पावती सापडली नाही."
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    alert(
+      "PDF तयार होत आहे..."
+    );
+
+
+    const blob =
+      await makeReceiptPDF(id);
+
+
+    const fileName =
+      "Rajegroup-Pavati-" +
+      String(
+        receipt.receiptNumber || "1"
+      ) +
+      ".pdf";
+
+
+    const file =
+      new File(
+        [blob],
+        fileName,
+        {
+          type: "application/pdf"
+        }
+      );
+
+
+    if (
+      navigator.share &&
+      navigator.canShare &&
+      navigator.canShare({
+        files: [file]
+      })
+    ) {
+
+      await navigator.share({
+
+        title:
+          "राजे ग्रुप पावती",
+
+        text:
+          "गणेश मित्र मंडळ राजे ग्रुप वारणानगर",
+
+        files: [file]
+
+      });
+
+      return;
+
+    }
+
+
+    const url =
+      URL.createObjectURL(
+        blob
+      );
+
+
+    const a =
+      document.createElement(
+        "a"
+      );
+
+    a.href = url;
+
+    a.download =
+      fileName;
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    a.remove();
+
+
+    URL.revokeObjectURL(
+      url
+    );
+
+
+    alert(
+      "PDF तयार झाली. Downloads मधून WhatsApp वर पाठवा."
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "PDF Share Error:",
+      error
+    );
+
+
+    alert(
+      "PDF share करता आली नाही. PDF download करून WhatsApp वर पाठवा."
+    );
+
+  }
+
+}
+
+
+/* =========================
+   EXPENSES
+========================= */
 
 function showExpenses() {
 
@@ -1634,53 +2526,60 @@ function showExpenses() {
         खर्च
       </div>
 
+
       ${
         expensesData.length
 
-          ? expensesData.map(item => `
+          ? expensesData
+              .map(item => `
 
-              <div class="card">
+                <div class="card">
 
-                <div class="row">
+                  <div class="row">
 
-                  <div>
+                    <div>
 
-                    <b>
-                      ${escapeHtml(
-                        item.category
-                      )}
-                    </b>
+                      <b>
+                        ${escapeHtml(
+                          item.category
+                        )}
+                      </b>
 
-                    <div class="muted">
-                      ${escapeHtml(
-                        item.detail
-                      )}
+                      <div class="muted">
+                        ${escapeHtml(
+                          item.detail
+                        )}
+                      </div>
+
+                      <div class="muted">
+                        ${escapeHtml(
+                          item.paidTo
+                        )}
+                      </div>
+
                     </div>
 
-                    <div class="muted">
-                      ${escapeHtml(
-                        item.paidTo
-                      )}
-                    </div>
+
+                    <span class="amount">
+                      ${money(item.amount)}
+                    </span>
 
                   </div>
 
-                  <span class="amount">
-                    ${money(item.amount)}
-                  </span>
-
                 </div>
 
-              </div>
-
-            `).join("")
+              `)
+              .join("")
 
           : `
+
             <div class="card">
               अजून खर्च नाही
             </div>
+
           `
       }
+
 
       <button class="action">
         ＋ खर्च नोंदवा
@@ -1691,6 +2590,11 @@ function showExpenses() {
   `, "expenses");
 }
 
+
+/* =========================
+   REPORTS
+========================= */
+
 function showReports() {
 
   const collection =
@@ -1700,12 +2604,14 @@ function showReports() {
       0
     );
 
+
   const expense =
     expensesData.reduce(
       (sum, item) =>
         sum + Number(item.amount || 0),
       0
     );
+
 
   shell(`
 
@@ -1714,6 +2620,7 @@ function showReports() {
       <div class="title">
         अहवाल
       </div>
+
 
       <div class="card">
 
@@ -1727,6 +2634,7 @@ function showReports() {
 
       </div>
 
+
       <div class="card">
 
         <b>
@@ -1738,6 +2646,7 @@ function showReports() {
         </div>
 
       </div>
+
 
       <div class="card">
 
@@ -1753,25 +2662,31 @@ function showReports() {
 
       </div>
 
+
       <div class="card">
         <b>पूर्ण उत्सव खाते</b>
       </div>
+
 
       <div class="card">
         <b>दैनिक संकलन अहवाल</b>
       </div>
 
+
       <div class="card">
         <b>कार्यकर्त्यानुसार अहवाल</b>
       </div>
+
 
       <div class="card">
         <b>बाकी वर्गणी यादी</b>
       </div>
 
+
       <div class="card">
         <b>खर्च अहवाल</b>
       </div>
+
 
       <div class="card">
         <b>इतिहास</b>
@@ -1781,5 +2696,10 @@ function showReports() {
 
   `, "reports");
 }
+
+
+/* =========================
+   START
+========================= */
 
 loadData();
