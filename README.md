@@ -1,1 +1,0 @@
-# rajegroup-ganesh-utsav
