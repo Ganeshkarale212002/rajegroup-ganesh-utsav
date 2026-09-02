@@ -16,12 +16,33 @@ let receiptsData = [];
 let expensesData = [];
 let membersData = [];
 
+let profileData = {
+  mandalName: "गणेश मित्र मंडळ राजे ग्रुप वारणानगर",
+  president: "विक्रम कोकाटे",
+  vicePresident: "",
+  treasurer: "चैतन्य पवार",
+  logo: "",
+  presidentSign: "",
+  vicePresidentSign: "",
+  treasurerSign: ""
+};
+
 function money(value) {
   return "₹ " + Number(value || 0).toLocaleString("en-IN");
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 async function loadData() {
   try {
+
     const r = await db.collection("vargani").get();
 
     receiptsData = r.docs.map(doc => ({
@@ -43,6 +64,18 @@ async function loadData() {
       ...doc.data()
     }));
 
+    const p = await db
+      .collection("profile")
+      .doc("mandal")
+      .get();
+
+    if (p.exists) {
+      profileData = {
+        ...profileData,
+        ...p.data()
+      };
+    }
+
   } catch (error) {
     console.error("Firebase Error:", error);
   }
@@ -59,11 +92,24 @@ function shell(content, active) {
 
         <div class="brand">
 
-          <div class="logo">ॐ</div>
+          <div class="logo">
+
+            ${
+              profileData.logo
+                ? `<img src="${profileData.logo}">`
+                : "ॐ"
+            }
+
+          </div>
 
           <div>
+
             <h1>राजे ग्रुप</h1>
-            <small>गणेश मित्र मंडळ वारणानगर</small>
+
+            <small>
+              ${escapeHtml(profileData.mandalName)}
+            </small>
+
           </div>
 
         </div>
@@ -79,36 +125,46 @@ function shell(content, active) {
         <button
           class="${active === "home" ? "active" : ""}"
           onclick="showHome()">
+
           ⌂
           <span>होम</span>
+
         </button>
 
         <button
           class="${active === "receipts" ? "active" : ""}"
           onclick="showReceipts()">
+
           ▣
           <span>पावती</span>
+
         </button>
 
         <button
           class="${active === "members" ? "active" : ""}"
           onclick="showMembers()">
+
           ♙
           <span>कार्यकर्ते</span>
+
         </button>
 
         <button
           class="${active === "expenses" ? "active" : ""}"
           onclick="showExpenses()">
+
           ₹
           <span>खर्च</span>
+
         </button>
 
         <button
           class="${active === "reports" ? "active" : ""}"
           onclick="showReports()">
+
           ▤
           <span>अहवाल</span>
+
         </button>
 
       </nav>
@@ -119,17 +175,19 @@ function shell(content, active) {
 
 function showHome() {
 
-  const collection = receiptsData.reduce(
-    (sum, item) =>
-      sum + Number(item.amount || 0),
-    0
-  );
+  const collection =
+    receiptsData.reduce(
+      (sum, item) =>
+        sum + Number(item.amount || 0),
+      0
+    );
 
-  const expense = expensesData.reduce(
-    (sum, item) =>
-      sum + Number(item.amount || 0),
-    0
-  );
+  const expense =
+    expensesData.reduce(
+      (sum, item) =>
+        sum + Number(item.amount || 0),
+      0
+    );
 
   shell(`
 
@@ -164,13 +222,27 @@ function showHome() {
       <div class="grid">
 
         <div class="card">
-          <small>एकूण वर्गणी</small>
-          <b>${money(collection)}</b>
+
+          <small>
+            एकूण वर्गणी
+          </small>
+
+          <b>
+            ${money(collection)}
+          </b>
+
         </div>
 
         <div class="card">
-          <small>एकूण खर्च</small>
-          <b>${money(expense)}</b>
+
+          <small>
+            एकूण खर्च
+          </small>
+
+          <b>
+            ${money(expense)}
+          </b>
+
         </div>
 
       </div>
@@ -184,29 +256,29 @@ function showHome() {
         ${
           receiptsData.length
 
-          ? receiptsData
-              .slice(-5)
-              .reverse()
-              .map(item => `
+            ? receiptsData
+                .slice(-5)
+                .reverse()
+                .map(item => `
 
-                <div class="row">
+                  <div class="row">
 
-                  <span>
-                    पावती ${item.receiptNumber || "-"}
-                    •
-                    ${item.name || "-"}
-                  </span>
+                    <span>
+                      पावती ${item.receiptNumber || "-"}
+                      •
+                      ${escapeHtml(item.name)}
+                    </span>
 
-                  <span class="amount">
-                    ${money(item.amount)}
-                  </span>
+                    <span class="amount">
+                      ${money(item.amount)}
+                    </span>
 
-                </div>
+                  </div>
 
-              `)
-              .join("")
+                `)
+                .join("")
 
-          : "अजून पावत्या नाहीत"
+            : "अजून पावत्या नाहीत"
         }
 
       </div>
@@ -238,7 +310,9 @@ function showReceipts() {
       <button
         class="action"
         onclick="showNewReceiptForm()">
+
         ＋ नवीन देणगी
+
       </button>
 
     </main>
@@ -282,11 +356,11 @@ function renderReceipts(list) {
             </b>
 
             <div class="muted">
-              ${item.name || "-"}
+              ${escapeHtml(item.name)}
             </div>
 
             <div class="muted">
-              ${item.paymentMode || "-"}
+              ${escapeHtml(item.paymentMode)}
             </div>
 
           </div>
@@ -296,6 +370,22 @@ function renderReceipts(list) {
           </span>
 
         </div>
+
+        <button
+          class="action"
+          onclick="printReceipt('${item.id}')">
+
+          📄 PDF / Print
+
+        </button>
+
+        <button
+          class="action"
+          onclick="shareWhatsApp('${item.id}')">
+
+          📲 WhatsApp Share
+
+        </button>
 
       </div>
 
@@ -343,11 +433,20 @@ function showNewReceiptForm() {
 
         <div class="brand">
 
-          <div class="logo">ॐ</div>
+          <div class="logo">
+            ॐ
+          </div>
 
           <div>
-            <h1>राजे ग्रुप</h1>
-            <small>नवीन देणगी</small>
+
+            <h1>
+              राजे ग्रुप
+            </h1>
+
+            <small>
+              नवीन देणगी
+            </small>
+
           </div>
 
         </div>
@@ -417,7 +516,7 @@ function showNewReceiptForm() {
             id="receivedBy"
             class="search"
             type="text"
-            value="विक्रम कोकाटे"
+            value="${escapeHtml(profileData.president)}"
             placeholder="नाव"
           >
 
@@ -438,13 +537,17 @@ function showNewReceiptForm() {
           <button
             class="action"
             onclick="saveReceipt()">
+
             ✓ पावती तयार करा
+
           </button>
 
           <button
             class="action"
             onclick="showReceipts()">
+
             ← मागे
+
           </button>
 
         </div>
@@ -454,44 +557,34 @@ function showNewReceiptForm() {
     </div>
   `;
 
-  const dateInput =
-    document.getElementById("donationDate");
-
-  const today =
+  document.getElementById("donationDate").value =
     new Date().toISOString().split("T")[0];
-
-  dateInput.value = today;
 }
 
 async function saveReceipt() {
 
   const name =
-    document
-      .getElementById("donorName")
+    document.getElementById("donorName")
       .value
       .trim();
 
   const amount =
     Number(
-      document
-        .getElementById("donorAmount")
+      document.getElementById("donorAmount")
         .value
     );
 
   const paymentMode =
-    document
-      .getElementById("paymentMode")
+    document.getElementById("paymentMode")
       .value;
 
   const receivedBy =
-    document
-      .getElementById("receivedBy")
+    document.getElementById("receivedBy")
       .value
       .trim();
 
   const dateValue =
-    document
-      .getElementById("donationDate")
+    document.getElementById("donationDate")
       .value;
 
   if (!name) {
@@ -538,7 +631,10 @@ async function saveReceipt() {
         );
 
       if (number >= nextNumber) {
-        nextNumber = number + 1;
+
+        nextNumber =
+          number + 1;
+
       }
 
     });
@@ -548,14 +644,11 @@ async function saveReceipt() {
 
     if (dateValue) {
 
-      const selectedDate =
-        new Date(
-          dateValue + "T12:00:00"
-        );
-
       receiptDate =
         firebase.firestore.Timestamp.fromDate(
-          selectedDate
+          new Date(
+            dateValue + "T12:00:00"
+          )
         );
     }
 
@@ -590,7 +683,7 @@ async function saveReceipt() {
   } catch (error) {
 
     console.error(
-      "Receipt Save Error:",
+      "Receipt Error:",
       error
     );
 
@@ -598,6 +691,59 @@ async function saveReceipt() {
       "पावती सेव्ह झाली नाही."
     );
   }
+}
+
+function shareWhatsApp(id) {
+
+  const receipt =
+    receiptsData.find(
+      item => item.id === id
+    );
+
+  if (!receipt) {
+
+    alert(
+      "पावती सापडली नाही."
+    );
+
+    return;
+  }
+
+  const date =
+    receipt.date &&
+    receipt.date.toDate
+      ? receipt.date
+          .toDate()
+          .toLocaleDateString("mr-IN")
+      : "-";
+
+  const message = `
+
+🧾 *गणेश मित्र मंडळ राजे ग्रुप वारणानगर*
+
+पावती क्रमांक: ${receipt.receiptNumber || "-"}
+दिनांक: ${date}
+
+वर्गणीदार: ${receipt.name || "-"}
+रक्कम: ${money(receipt.amount)}
+पेमेंट मोड: ${receipt.paymentMode || "-"}
+रक्कम स्वीकारणारे: ${receipt.receivedBy || "-"}
+
+अध्यक्ष: ${profileData.president || "-"}
+उपाध्यक्ष: ${profileData.vicePresident || "-"}
+खजिनदार: ${profileData.treasurer || "-"}
+
+🙏 धन्यवाद
+  `.trim();
+
+  const whatsappUrl =
+    "https://wa.me/?text=" +
+    encodeURIComponent(message);
+
+  window.open(
+    whatsappUrl,
+    "_blank"
+  );
 }
 
 function showMembers() {
@@ -613,44 +759,869 @@ function showMembers() {
       ${
         membersData.length
 
-        ? membersData.map(item => `
+          ? membersData.map(item => `
 
+              <div class="card">
+
+                <b>
+                  ${escapeHtml(item.name)}
+                </b>
+
+                <div class="amount">
+                  ${escapeHtml(
+                    item.role ||
+                    "कार्यकर्ता"
+                  )}
+                </div>
+
+                <div class="muted">
+                  ${escapeHtml(item.mobile)}
+                </div>
+
+              </div>
+
+            `).join("")
+
+          : `
             <div class="card">
-
-              <b>
-                ${item.name || "-"}
-              </b>
-
-              <div class="amount">
-                ${item.role || "कार्यकर्ता"}
-              </div>
-
-              <div class="muted">
-                ${item.mobile || ""}
-              </div>
-
+              अजून कार्यकर्ते नाहीत
             </div>
-
-          `).join("")
-
-        : `
-          <div class="card">
-            अजून कार्यकर्ते नाहीत
-          </div>
-        `
+          `
       }
 
-      <button class="action">
-        ＋ नवीन कार्यकर्ता
-      </button>
+      <button
+        class="action"
+        onclick="showProfile()">
 
-      <button class="action">
-        अध्यक्षपद दुसऱ्याला द्या
+        ⚙️ मंडळ प्रोफाइल
+
       </button>
 
     </main>
 
   `, "members");
+}
+
+function showProfile() {
+
+  root.innerHTML = `
+
+    <div class="app">
+
+      <header>
+
+        <div class="brand">
+
+          <div class="logo">
+            ॐ
+          </div>
+
+          <div>
+
+            <h1>
+              राजे ग्रुप
+            </h1>
+
+            <small>
+              मंडळ प्रोफाइल
+            </small>
+
+          </div>
+
+        </div>
+
+      </header>
+
+      <main class="page">
+
+        <div class="title">
+          मंडळ प्रोफाइल
+        </div>
+
+        <div class="card">
+
+          <label>
+            मंडळाचे नाव
+          </label>
+
+          <input
+            id="mandalName"
+            class="search"
+            value="${escapeHtml(
+              profileData.mandalName
+            )}"
+          >
+
+          <br>
+
+          <label>
+            अध्यक्षाचे नाव
+          </label>
+
+          <input
+            id="president"
+            class="search"
+            value="${escapeHtml(
+              profileData.president
+            )}"
+          >
+
+          <br>
+
+          <label>
+            उपाध्यक्षाचे नाव
+          </label>
+
+          <input
+            id="vicePresident"
+            class="search"
+            value="${escapeHtml(
+              profileData.vicePresident
+            )}"
+          >
+
+          <br>
+
+          <label>
+            खजिनदाराचे नाव
+          </label>
+
+          <input
+            id="treasurer"
+            class="search"
+            value="${escapeHtml(
+              profileData.treasurer
+            )}"
+          >
+
+          <br>
+
+          <label>
+            Logo Upload
+          </label>
+
+          <input
+            id="logoFile"
+            type="file"
+            accept="image/*"
+          >
+
+          <br><br>
+
+          <label>
+            अध्यक्ष Signature Upload
+          </label>
+
+          <input
+            id="presidentSignFile"
+            type="file"
+            accept="image/*"
+          >
+
+          <br><br>
+
+          <label>
+            उपाध्यक्ष Signature Upload
+          </label>
+
+          <input
+            id="vicePresidentSignFile"
+            type="file"
+            accept="image/*"
+          >
+
+          <br><br>
+
+          <label>
+            खजिनदार Signature Upload
+          </label>
+
+          <input
+            id="treasurerSignFile"
+            type="file"
+            accept="image/*"
+          >
+
+          <br><br>
+
+          <button
+            class="action"
+            onclick="saveProfile()">
+
+            ✓ प्रोफाइल सेव्ह करा
+
+          </button>
+
+          <button
+            class="action"
+            onclick="showMembers()">
+
+            ← मागे
+
+          </button>
+
+        </div>
+
+      </main>
+
+    </div>
+  `;
+}
+
+function readImage(file) {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      if (!file) {
+
+        resolve("");
+
+        return;
+      }
+
+      const reader =
+        new FileReader();
+
+      reader.onload = () => {
+
+        const img =
+          new Image();
+
+        img.onload = () => {
+
+          const canvas =
+            document.createElement(
+              "canvas"
+            );
+
+          const max = 700;
+
+          let width = img.width;
+
+          let height = img.height;
+
+          if (width > max) {
+
+            height =
+              height * max / width;
+
+            width = max;
+          }
+
+          canvas.width =
+            width;
+
+          canvas.height =
+            height;
+
+          const ctx =
+            canvas.getContext("2d");
+
+          ctx.drawImage(
+            img,
+            0,
+            0,
+            width,
+            height
+          );
+
+          resolve(
+            canvas.toDataURL(
+              "image/jpeg",
+              0.75
+            )
+          );
+        };
+
+        img.onerror = reject;
+
+        img.src =
+          reader.result;
+      };
+
+      reader.onerror = reject;
+
+      reader.readAsDataURL(file);
+    }
+  );
+}
+
+async function saveProfile() {
+
+  try {
+
+    const logo =
+      await readImage(
+        document.getElementById(
+          "logoFile"
+        ).files[0]
+      );
+
+    const presidentSign =
+      await readImage(
+        document.getElementById(
+          "presidentSignFile"
+        ).files[0]
+      );
+
+    const vicePresidentSign =
+      await readImage(
+        document.getElementById(
+          "vicePresidentSignFile"
+        ).files[0]
+      );
+
+    const treasurerSign =
+      await readImage(
+        document.getElementById(
+          "treasurerSignFile"
+        ).files[0]
+      );
+
+    const data = {
+
+      mandalName:
+        document
+          .getElementById("mandalName")
+          .value
+          .trim(),
+
+      president:
+        document
+          .getElementById("president")
+          .value
+          .trim(),
+
+      vicePresident:
+        document
+          .getElementById("vicePresident")
+          .value
+          .trim(),
+
+      treasurer:
+        document
+          .getElementById("treasurer")
+          .value
+          .trim()
+
+    };
+
+    if (logo) {
+      data.logo = logo;
+    }
+
+    if (presidentSign) {
+      data.presidentSign =
+        presidentSign;
+    }
+
+    if (vicePresidentSign) {
+      data.vicePresidentSign =
+        vicePresidentSign;
+    }
+
+    if (treasurerSign) {
+      data.treasurerSign =
+        treasurerSign;
+    }
+
+    await db
+      .collection("profile")
+      .doc("mandal")
+      .set(
+        data,
+        { merge: true }
+      );
+
+    profileData = {
+      ...profileData,
+      ...data
+    };
+
+    alert(
+      "प्रोफाइल सेव्ह झाली."
+    );
+
+    showMembers();
+
+  } catch (error) {
+
+    console.error(
+      "Profile Error:",
+      error
+    );
+
+    alert(
+      "प्रोफाइल सेव्ह करताना समस्या आली."
+    );
+  }
+}
+
+function printReceipt(id) {
+
+  const receipt =
+    receiptsData.find(
+      item => item.id === id
+    );
+
+  if (!receipt) {
+
+    alert(
+      "पावती सापडली नाही."
+    );
+
+    return;
+  }
+
+  const logo =
+    profileData.logo
+
+      ? `
+        <img
+          class="receiptLogo"
+          src="${profileData.logo}"
+        >
+      `
+
+      : `
+        <div class="om">
+          ॐ
+        </div>
+      `;
+
+  const presidentSign =
+    profileData.presidentSign
+
+      ? `
+        <img
+          src="${profileData.presidentSign}"
+        >
+      `
+
+      : "";
+
+  const vicePresidentSign =
+    profileData.vicePresidentSign
+
+      ? `
+        <img
+          src="${profileData.vicePresidentSign}"
+        >
+      `
+
+      : "";
+
+  const treasurerSign =
+    profileData.treasurerSign
+
+      ? `
+        <img
+          src="${profileData.treasurerSign}"
+        >
+      `
+
+      : "";
+
+  const date =
+    receipt.date &&
+    receipt.date.toDate
+
+      ? receipt.date
+          .toDate()
+          .toLocaleDateString("mr-IN")
+
+      : "";
+
+  const html = `
+
+<!DOCTYPE html>
+
+<html lang="mr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>
+पावती ${receipt.receiptNumber}
+</title>
+
+<style>
+
+body {
+
+  font-family:
+    Arial,
+    sans-serif;
+
+  background: #eee;
+
+  margin: 0;
+
+  padding: 20px;
+
+}
+
+.receipt {
+
+  max-width: 700px;
+
+  margin: auto;
+
+  background: white;
+
+  border: 2px solid #333;
+
+  padding: 25px;
+
+  box-sizing: border-box;
+
+}
+
+.header {
+
+  text-align: center;
+
+}
+
+.receiptLogo {
+
+  width: 130px;
+
+  height: 130px;
+
+  object-fit: contain;
+
+  display: block;
+
+  margin: auto;
+
+}
+
+.om {
+
+  font-size: 70px;
+
+}
+
+h1 {
+
+  margin: 8px 0;
+
+}
+
+.sub {
+
+  font-size: 18px;
+
+}
+
+.top {
+
+  display: flex;
+
+  justify-content:
+    space-between;
+
+  margin-top: 20px;
+
+  border-top:
+    1px solid #999;
+
+  border-bottom:
+    1px solid #999;
+
+  padding: 10px 0;
+
+}
+
+.info {
+
+  margin-top: 20px;
+
+  line-height: 2;
+
+  font-size: 18px;
+
+}
+
+.amount {
+
+  font-size: 25px;
+
+  font-weight: bold;
+
+}
+
+.signatures {
+
+  display: flex;
+
+  align-items:
+    flex-end;
+
+  justify-content:
+    space-between;
+
+  margin-top: 60px;
+
+  text-align: center;
+
+}
+
+.signature {
+
+  width: 30%;
+
+}
+
+.signature img {
+
+  width: 110px;
+
+  height: 60px;
+
+  object-fit: contain;
+
+  display: block;
+
+  margin: auto;
+
+}
+
+.line {
+
+  border-top:
+    1px solid #333;
+
+  margin-top: 5px;
+
+  padding-top: 5px;
+
+}
+
+.president {
+
+  width: 34%;
+
+}
+
+@media print {
+
+  body {
+
+    background: white;
+
+    padding: 0;
+
+  }
+
+  .receipt {
+
+    border: 2px solid #333;
+
+    margin: 0;
+
+  }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="receipt">
+
+  <div class="header">
+
+    ${logo}
+
+    <h1>
+      ${escapeHtml(
+        profileData.mandalName
+      )}
+    </h1>
+
+    <div class="sub">
+      गणेश उत्सव वर्गणी पावती
+    </div>
+
+  </div>
+
+  <div class="top">
+
+    <div>
+
+      <b>
+        पावती क्रमांक:
+      </b>
+
+      ${receipt.receiptNumber || "-"}
+
+    </div>
+
+    <div>
+
+      <b>
+        दिनांक:
+      </b>
+
+      ${date}
+
+    </div>
+
+  </div>
+
+  <div class="info">
+
+    <div>
+
+      <b>
+        वर्गणीदाराचे नाव:
+      </b>
+
+      ${escapeHtml(
+        receipt.name
+      )}
+
+    </div>
+
+    <div>
+
+      <b>
+        रक्कम:
+      </b>
+
+      <span class="amount">
+        ${money(receipt.amount)}
+      </span>
+
+    </div>
+
+    <div>
+
+      <b>
+        पेमेंट मोड:
+      </b>
+
+      ${escapeHtml(
+        receipt.paymentMode
+      )}
+
+    </div>
+
+    <div>
+
+      <b>
+        रक्कम स्वीकारणारे:
+      </b>
+
+      ${escapeHtml(
+        receipt.receivedBy
+      )}
+
+    </div>
+
+  </div>
+
+  <div class="signatures">
+
+    <div class="signature">
+
+      ${vicePresidentSign}
+
+      <div class="line">
+
+        ${escapeHtml(
+          profileData.vicePresident
+        )}
+
+        <br>
+
+        उपाध्यक्ष
+
+      </div>
+
+    </div>
+
+    <div class="signature president">
+
+      ${presidentSign}
+
+      <div class="line">
+
+        ${escapeHtml(
+          profileData.president
+        )}
+
+        <br>
+
+        अध्यक्ष
+
+      </div>
+
+    </div>
+
+    <div class="signature">
+
+      ${treasurerSign}
+
+      <div class="line">
+
+        ${escapeHtml(
+          profileData.treasurer
+        )}
+
+        <br>
+
+        खजिनदार
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+window.onload = function() {
+
+  window.print();
+
+};
+
+</script>
+
+</body>
+
+</html>
+`;
+
+  const win =
+    window.open(
+      "",
+      "_blank"
+    );
+
+  if (!win) {
+
+    alert(
+      "Popup बंद आहे. Browser मध्ये popup allow करा."
+    );
+
+    return;
+  }
+
+  win.document.open();
+
+  win.document.write(html);
+
+  win.document.close();
 }
 
 function showExpenses() {
@@ -666,43 +1637,49 @@ function showExpenses() {
       ${
         expensesData.length
 
-        ? expensesData.map(item => `
+          ? expensesData.map(item => `
 
-            <div class="card">
+              <div class="card">
 
-              <div class="row">
+                <div class="row">
 
-                <div>
+                  <div>
 
-                  <b>
-                    ${item.category || "-"}
-                  </b>
+                    <b>
+                      ${escapeHtml(
+                        item.category
+                      )}
+                    </b>
 
-                  <div class="muted">
-                    ${item.detail || ""}
+                    <div class="muted">
+                      ${escapeHtml(
+                        item.detail
+                      )}
+                    </div>
+
+                    <div class="muted">
+                      ${escapeHtml(
+                        item.paidTo
+                      )}
+                    </div>
+
                   </div>
 
-                  <div class="muted">
-                    ${item.paidTo || ""}
-                  </div>
+                  <span class="amount">
+                    ${money(item.amount)}
+                  </span>
 
                 </div>
 
-                <span class="amount">
-                  ${money(item.amount)}
-                </span>
-
               </div>
 
+            `).join("")
+
+          : `
+            <div class="card">
+              अजून खर्च नाही
             </div>
-
-          `).join("")
-
-        : `
-          <div class="card">
-            अजून खर्च नाही
-          </div>
-        `
+          `
       }
 
       <button class="action">
@@ -739,24 +1716,41 @@ function showReports() {
       </div>
 
       <div class="card">
-        <b>एकूण जमा</b>
+
+        <b>
+          एकूण जमा
+        </b>
+
         <div class="amount">
           ${money(collection)}
         </div>
+
       </div>
 
       <div class="card">
-        <b>एकूण खर्च</b>
+
+        <b>
+          एकूण खर्च
+        </b>
+
         <div class="amount">
           ${money(expense)}
         </div>
+
       </div>
 
       <div class="card">
-        <b>शिल्लक</b>
+
+        <b>
+          शिल्लक
+        </b>
+
         <div class="amount">
-          ${money(collection - expense)}
+          ${money(
+            collection - expense
+          )}
         </div>
+
       </div>
 
       <div class="card">
