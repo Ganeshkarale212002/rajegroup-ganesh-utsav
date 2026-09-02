@@ -1,0 +1,1 @@
+window.RajeState={receipts:[],expenses:[],members:[],profile:{mandalName:"गणेश मित्र मंडळ राजे ग्रुप, वारणानगर",place:"वारणानगर, सातारा",president:"विक्रम कोकाटे",vicePresident:"",treasurer:"चैतन्य पवार",logo:"",presidentSign:"",vicePresidentSign:"",treasurerSign:""}};

@@ -1,0 +1,1 @@
+const FIREBASE_CONFIG={apiKey:"AIzaSyBjH6RsLbRKlgq4gGE5QX4OZk-UzYaV2lU",authDomain:"rajegroup-vargani-book.firebaseapp.com",projectId:"rajegroup-vargani-book",storageBucket:"rajegroup-vargani-book.firebasestorage.app",messagingSenderId:"63311979980",appId:"1:63311979980:web:805f7b06f46982bbaf6969"};firebase.initializeApp(FIREBASE_CONFIG);const db=firebase.firestore();
