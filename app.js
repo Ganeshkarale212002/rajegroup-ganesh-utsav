@@ -2859,3 +2859,225 @@ async function shareReceiptPDF(id) {
     document.body.appendChild(
       a
     );
+
+
+    a.click();
+
+    a.remove();
+
+
+    setTimeout(
+      () =>
+        URL.revokeObjectURL(
+          url
+        ),
+      3000
+    );
+
+
+    alert(
+      "PDF तयार झाली. Downloads मधून WhatsApp वर पाठवा."
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "PDF Share Error:",
+      error
+    );
+
+
+    alert(
+      "PDF तयार झाली नाही. पुन्हा प्रयत्न करा."
+    );
+
+  }
+}
+
+
+/* =========================
+   EXPENSES
+========================= */
+
+function showExpenses() {
+
+  shell(`
+
+    <main class="page">
+
+      <div class="title">
+        खर्च
+      </div>
+
+
+      ${
+        expensesData.length
+
+          ? expensesData
+              .map(x => `
+
+                <div class="card">
+
+                  <div class="row">
+
+                    <div>
+
+                      <b>
+                        ${escapeHtml(
+                          x.category
+                        )}
+                      </b>
+
+                      <div class="muted">
+                        ${escapeHtml(
+                          x.detail
+                        )}
+                      </div>
+
+                    </div>
+
+
+                    <span class="amount">
+                      ${money(x.amount)}
+                    </span>
+
+                  </div>
+
+                </div>
+
+              `)
+              .join("")
+
+          : `
+
+            <div class="card">
+              अजून खर्च नाही
+            </div>
+
+          `
+      }
+
+
+      <button class="action">
+        ＋ खर्च नोंदवा
+      </button>
+
+    </main>
+
+  `, "expenses");
+}
+
+
+/* =========================
+   REPORTS
+========================= */
+
+function showReports() {
+
+  const collection =
+    receiptsData.reduce(
+      (a, x) =>
+        a + Number(x.amount || 0),
+      0
+    );
+
+
+  const expense =
+    expensesData.reduce(
+      (a, x) =>
+        a + Number(x.amount || 0),
+      0
+    );
+
+
+  shell(`
+
+    <main class="page">
+
+      <div class="title">
+        अहवाल
+      </div>
+
+
+      <div class="card">
+
+        <b>
+          एकूण जमा
+        </b>
+
+        <div class="amount">
+          ${money(collection)}
+        </div>
+
+      </div>
+
+
+      <div class="card">
+
+        <b>
+          एकूण खर्च
+        </b>
+
+        <div class="amount">
+          ${money(expense)}
+        </div>
+
+      </div>
+
+
+      <div class="card">
+
+        <b>
+          शिल्लक
+        </b>
+
+        <div class="amount">
+          ${money(
+            collection - expense
+          )}
+        </div>
+
+      </div>
+
+
+      <div class="card">
+        <b>पूर्ण उत्सव खाते</b>
+      </div>
+
+
+      <div class="card">
+        <b>दैनिक संकलन अहवाल</b>
+      </div>
+
+
+      <div class="card">
+        <b>कार्यकर्त्यानुसार अहवाल</b>
+      </div>
+
+
+      <div class="card">
+        <b>बाकी वर्गणी यादी</b>
+      </div>
+
+
+      <div class="card">
+        <b>खर्च अहवाल</b>
+      </div>
+
+
+      <div class="card">
+        <b>इतिहास</b>
+      </div>
+
+    </main>
+
+  `, "reports");
+}
+
+
+/* =========================
+   START
+========================= */
+
+loadData();
